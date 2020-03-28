@@ -72,14 +72,14 @@ file = open('raceSchedule.csv', 'w+')
 
 file.write('race#, ')
 for i in range(1, numLanes+1):
-    file.write('car' + str(i) + '#, time' + str(i)  + ', ')
+    file.write('car' + str(i) + '#, pos, time'  + ', ')
 file.write('timestamp\n')
 
 for i in range(0, len(lanes[0])):
     file.write(str(i+1) + ', ')
     for j in range(0, numLanes):
         if i < len(lanes[j]):
-            file.write(str(lanes[j][i]) + ', -, ')
+            file.write(str(lanes[j][i]) + ', -, -,')
     file.write('-\n')
 
 

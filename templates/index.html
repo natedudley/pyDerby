@@ -7,15 +7,18 @@ utils module here to automatically render Flask's flashed messages in a
 bootstrap friendly manner #}
 {% import "bootstrap/utils.html" as utils %}
 
-    {%- block metas %}
-    <meta http-equiv="refresh" content="10">
-    {%- endblock metas %}
+{%- block metas %}
+<meta http-equiv="refresh" content="10">
+{%- endblock metas %}
 
 
 {# Inside the ``content`` is where you should place most of your own stuff.
 This will keep scripts at the page end and a navbar you add on later
 intact. #}
 {% block content %}
+
+
+
 <div class="container">
     {%- with messages = get_flashed_messages(with_categories=True) %}
     {%- if messages %}
@@ -28,11 +31,18 @@ intact. #}
     {%- endwith %}
     <div class="jumbotron">
         <h1>Welcome to the Pinewood Derby</h1>
-        <p>Have a great time!</p>
+        <p>Have a great time!!</p>
+        <p>{{ fastestTime }}</p>
+
     </div>
 
 
-    <table class="table table-striped">
+    <table class="table table-striped" id="table"
+           data-toggle="true"
+           data-toolbar="#toolbar"
+           data-search="false"
+           data-show-columns="true"
+           data-pagination="false">
         <thead>
         <tr>
             {% for col in table[0] %}

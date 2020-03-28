@@ -14,6 +14,7 @@
     <!-- Bootstrap -->
     <link href="{{bootstrap_find_resource('css/bootstrap.css', cdn='bootstrap')}}" rel="stylesheet">
     {%- endblock styles %}
+
     {%- endblock head %}
   </head>
   <body{% block body_attribs %}{% endblock body_attribs %}>
@@ -26,6 +27,8 @@
     {% block scripts %}
     <script src="{{bootstrap_find_resource('jquery.js', cdn='jquery')}}"></script>
     <script src="{{bootstrap_find_resource('js/bootstrap.js', cdn='bootstrap')}}"></script>
+
+
     {%- endblock scripts %}
     {%- endblock body %}
   </body>

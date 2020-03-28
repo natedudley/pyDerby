@@ -5,7 +5,18 @@ class logger:
     def __init__(self):
         a = 1
 
+    def calcPlacement(self, times):
+        res = [1] * len(times)
+        for i in range(len(times) - 1):
+            for j in range(i + 1, len(times)):
+                if times[i] > times[j]:
+                    res[i] = res[i] + 1
+                elif times[i] < times[j]:
+                    res[j] = res[j] + 1
+        return res
+
     def logRace(self, times):
+        places = self.calcPlacement(times)
         file = open('raceSchedule.csv', 'r')
         races = file.readlines()
         file.close()
@@ -15,8 +26,9 @@ class logger:
         for race in races:
             if not found and "-" in race:
                 found = True
-                for time in times:
-                    race = race.replace("-", str(time), 1)
+                for t in range(len(times)):
+                    race = race.replace("-", str(places[t]), 1)
+                    race = race.replace("-", "{:.3f}".format(times[t]), 1)
                 race = race.replace("-", datetime.now().strftime("%H:%M:%S"))
                 newRes.append(race)
             else:
