@@ -8,7 +8,7 @@ import statistics
 app = Flask(__name__)
 
 @app.route('/cars')
-def index():
+def cars():
     data = []
     # other column settings -> http://bootstrap-table.wenzhixin.net.cn/documentation/#column-options
 

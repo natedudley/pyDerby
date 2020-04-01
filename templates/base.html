@@ -13,6 +13,11 @@
     {%- block styles %}
     <!-- Bootstrap -->
     <link href="{{bootstrap_find_resource('css/bootstrap.css', cdn='bootstrap')}}" rel="stylesheet">
+     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.min.css">
+    <link rel="icon" href="favicon.ico">
+        <script src="{{bootstrap_find_resource('jquery.js', cdn='jquery')}}"></script>
+    <script src="{{bootstrap_find_resource('js/bootstrap.js', cdn='bootstrap')}}"></script>
+    <script type='text/javascript' src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.min.js"></script>
     {%- endblock styles %}
 
     {%- endblock head %}
@@ -20,13 +25,33 @@
   <body{% block body_attribs %}{% endblock body_attribs %}>
     {% block body -%}
     {% block navbar %}
+
+{% set navigation_bar = [
+    ('/', 'index', 'Home'),
+    ('/cars', 'cars', 'Cars'),
+] -%}
+{% set active_page = active_page|default('index') -%}
+
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="https://mercerisland668.mypack.us//">Pack 668:</a>
+    </div>
+    <ul class="nav navbar-nav">
+
+{% for href, id, caption in navigation_bar %}
+  <li{% if id == active_page %} class="active"{% endif
+  %}><a href="{{ href|e }}">{{ caption|e }}</a></li>
+{% endfor %}
+</ul>
+  </div>
+</nav>
     {%- endblock navbar %}
     {% block content -%}
     {%- endblock content %}
 
     {% block scripts %}
-    <script src="{{bootstrap_find_resource('jquery.js', cdn='jquery')}}"></script>
-    <script src="{{bootstrap_find_resource('js/bootstrap.js', cdn='bootstrap')}}"></script>
+
 
 
     {%- endblock scripts %}
