@@ -12,7 +12,11 @@
   <link rel="stylesheet" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
   <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.min.css">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="icon" href="favicon.ico">
   <script type='text/javascript' src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.min.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.16.0/extensions/cookie/bootstrap-table-cookie.min.js"></script>
+
   <style type='text/css'>
     .row-index {
       width: 50px;
@@ -40,15 +44,14 @@
 <body>
 <div class="container" style="padding: 10px;">
   <div class="jumbotron">
-    <h1>Welcome to the Pinewood Derby</h1>
-    <p>Have a great time!!</p>
+    <h1>Congratulations Racers!</h1>
   </div>
   <br/>
   <div id="toolbar"></div>
-  <div class="container" style="overflow: auto; height: 400px;">
+  <div class="container" style="overflow: auto;">
     <table
             id="table"
-            data-toggle="true"
+            data-toggle="false"
             data-toolbar="#toolbar"
             data-search="false"
             data-show-columns="true"

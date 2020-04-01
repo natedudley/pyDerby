@@ -54,7 +54,7 @@ intact. #}
         {% for row in table[1:] %}
         <tr>
             {% for col in row %}
-            <td>{{ col }}</td>
+            <td>{{ col|safe }}</td>
             {% endfor %}
         </tr>
         {% endfor %}

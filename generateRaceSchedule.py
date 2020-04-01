@@ -4,7 +4,7 @@ import json
 from collections import deque
 
 numLanes = 4
-numCars = 39
+numCars = 40
 
 def shortestLane(lanes):
     pq = PriorityQueue()
