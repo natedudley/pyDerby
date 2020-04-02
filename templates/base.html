@@ -18,12 +18,22 @@
         <script src="{{bootstrap_find_resource('jquery.js', cdn='jquery')}}"></script>
     <script src="{{bootstrap_find_resource('js/bootstrap.js', cdn='bootstrap')}}"></script>
     <script type='text/javascript' src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.min.js"></script>
+      <script type='text/javascript' src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
     {%- endblock styles %}
 
     {%- endblock head %}
   </head>
   <body{% block body_attribs %}{% endblock body_attribs %}>
     {% block body -%}
+
+
+    <div class="alert alert-info" role="alert">
+      This site uses cookies
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="acknowledgeCookies()">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+
     {% block navbar %}
 
 {% set navigation_bar = [
@@ -55,7 +65,25 @@
 
 
     {%- endblock scripts %}
+
     {%- endblock body %}
+
+    <script>
+        if(!document.cookie.includes("acknowledgeCookies"))
+        {
+            $('.alert').alert()
+        }
+        else
+        {
+            $('.alert').hide();
+        }
+
+        function acknowledgeCookies() {
+          document.cookie = "acknowledgeCookies=true"
+        }
+
+    </script>
+
   </body>
 {%- endblock html %}
 </html>

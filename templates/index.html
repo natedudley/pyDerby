@@ -43,23 +43,22 @@ intact. #}
            data-toolbar="#toolbar"
            data-search="false"
            data-show-columns="true"
-           data-pagination="false">
-        <thead>
-        <tr>
-            {% for col in table[0] %}
-            <th>{{ col }}</th>
-            {% endfor %}
-        </tr>
-        </thead>
-        <tbody>
-        {% for row in table[1:] %}
-        <tr>
-            {% for col in row %}
-            <td>{{ col|safe }}</td>
-            {% endfor %}
-        </tr>
-        {% endfor %}
-        </tbody>
+           data-pagination="false"
+           data-sortable="false"
+           data-striped="true">
     </table>
 </div>
+
+<script type='text/javascript'>
+  $(function() {
+    $('#table').bootstrapTable({
+          data: {{data|tojson}},
+          columns: {{columns|tojson}},
+          onColumnSwitch: function (field, checked) {
+            document.cookie = "indexColVis" + field + "=" + checked;
+          }
+  });
+  })
+
+  </script>
 {%- endblock %}

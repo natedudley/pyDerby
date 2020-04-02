@@ -14,7 +14,7 @@
             id="table"
             data-toggle="false"
             data-toolbar="#toolbar"
-            data-search="false"
+            data-search="true"
             data-show-columns="true"
             data-pagination="false"
             data-striped="true">
@@ -22,12 +22,23 @@
   </div>
 </div>
 
-  <script type='text/javascript'>
+<script type='text/javascript'>
   $(function() {
     $('#table').bootstrapTable({
           data: {{data|tojson}},
           columns: {{columns|tojson}},
-        });
+
+          sortName: $.cookie('carsColSortName'),
+          sortOrder: $.cookie('carsColSortOrder'),
+
+          onColumnSwitch: function (field, checked) {
+            document.cookie = "carsColVis" + field + "=" + checked;
+          },
+          onSort: function (name, order) {
+            document.cookie = "carsColSortName=" + name;
+            document.cookie = "carsColSortOrder=" +  order;
+          }
+  });
   })
 
   </script>

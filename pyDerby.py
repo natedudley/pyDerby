@@ -1,9 +1,11 @@
+import flask
 from flask import Flask, render_template
 from flask_bootstrap import Bootstrap
 from flask import jsonify
 import os
 from flask import send_from_directory
 import statistics
+import CsvReader
 
 app = Flask(__name__)
 
@@ -12,71 +14,63 @@ def cars():
     data = []
     # other column settings -> http://bootstrap-table.wenzhixin.net.cn/documentation/#column-options
 
+    raceSchedule = CsvReader.CSVReader('raceSchedule.csv')
 
-    file = open('raceSchedule.csv', 'r')
-    races = file.readlines()
-    file.close()
+    columns = [getTableColSettingsWithCookie('cars', 'car#', 'car#'),
+               getTableColSettingsWithCookie('cars', 'min', 'min'),
+               getTableColSettingsWithCookie('cars', 'avg', 'avg'),
+               getTableColSettingsWithCookie('cars', 'total', 'total'),
+               getTableColSettingsWithCookie('cars', 'stdev', 'stdev')]
 
-    race = races[0].split(',')
-    columns = [{'field': 'car#', 'title': 'car#', 'sortable': True},
-               {'field': 'min', 'title': 'min', 'sortable': True},
-               {'field': 'avg', 'title': 'avg', 'sortable': True},
-               {'field': 'total', 'title': 'total', 'sortable': True},
-               {'field': 'stdev', 'title': 'stdev', 'sortable': True}]
-    header=[]
     count = 0
-    for r in race:
-        r = r.strip()
-        header.append(r)
-        if 'car' in r:
+    for h in raceSchedule.getHeader():
+        if 'car' in h:
             count = count + 1
-            columns.append({'field': 'race#' + str(count), 'title': 'race#', 'sortable': True})
-            columns.append({'field': 'pos' + str(count), 'title': 'pos', 'sortable': True})
-            columns.append({'field': 'time' + str(count), 'title': 'time', 'sortable': True})
+            columns.append(getTableColSettingsWithCookie('cars', 'race#' + str(count), 'race#'))
+            columns.append(getTableColSettingsWithCookie('cars', 'pos' + str(count), 'pos'))
+            columns.append(getTableColSettingsWithCookie('cars', 'time' + str(count), 'time'))
 
 
     cars = {}
     carTimes = {}
-    for race in races[1:]:
-        race = race.split(',')
+    for heat in raceSchedule.getRows():
         curCar = 0
         count = 0
         curRace = 0;
-        for i in range(len(race)):
-            r = race[i]
-            r= r.strip()
-            if 'car' in header[i]:
+        for i in range(len(heat)):
+            h = heat[i]
+            if 'car' in raceSchedule.getColumnName(i):
                 count = count + 1
-                curCar = r
-                if not r in cars:
-                    cars[r] = {}
+                curCar = h
+                if not h in cars:
+                    cars[h] = {}
                 cars[curCar].update({'race#' + str(count): curRace})
-            if 'pos' in header[i]:
-                cars[curCar].update({'pos' + str(count): r})
-            if header[i] == 'time':
+            if 'pos' in raceSchedule.getColumnName(i):
+                cars[curCar].update({'pos' + str(count): h})
+            if raceSchedule.getColumnName(i) == 'time':
                 try:
-                    cars[curCar].update({'time' + str(count): r})
+                    cars[curCar].update({'time' + str(count): h})
                     if curCar in carTimes:
-                        carTimes[curCar].append(float(r))
+                        carTimes[curCar].append(float(h))
                     else:
-                        carTimes[curCar] = [float(r)]
+                        carTimes[curCar] = [float(h)]
                 except ValueError:
                     pass
-            if 'race' in header[i]:
-                curRace = r
+            if 'race' in raceSchedule.getColumnName(i):
+                curRace = h
 
-    places = [0]*4
-    for c in cars:
-        row = {'car#': c}
-        row.update(cars[c])
-        row['avg'] = "{:.3f}".format(statistics.mean(carTimes[c]))
-        row['stdev'] = "{:.3f}".format(statistics.pstdev(carTimes[c]))
-        row['total'] = "{:.3f}".format(sum(carTimes[c]))
-        row['min'] = "{:.3f}".format(min(carTimes[c]))
-        places[carTimes[c].index(min(carTimes[c]))] += 1
+    for car in cars:
+        row = {'car#': car}
+        row.update(cars[car])
+        if car in carTimes:
+            row['avg'] = "{:.3f}".format(statistics.mean(carTimes[car]))
+            row['stdev'] = "{:.3f}".format(statistics.pstdev(carTimes[car]))
+            row['total'] = "{:.3f}".format(sum(carTimes[car]))
+            row['min'] = "{:.3f}".format(min(carTimes[car]))
+
         data.append(row)
 
-    print(places)
+
 
     return render_template("cars.html",
       data=data,
@@ -85,41 +79,60 @@ def cars():
 
 @app.route('/')
 def homepage():
-    file = open('raceSchedule.csv', 'r')
-    races = file.readlines()
-    file.close()
+    raceSchedule = CsvReader.CSVReader('raceSchedule.csv')
 
-    table = []
     timeIndex = []
     fastestTimes = []
-    for race in races:
-        r = race.split(',')
-        if 'time' in race:
-            for i in range(len(r)):
-                if 'time' in r[i] and not 'timestamp' in r[i]:
-                    timeIndex.append(i)
-                    fastestTimes.append(999999)
-        elif '-' not in race:
-            for i in range(len(timeIndex)):
-                t = float(r[timeIndex[i]])
-                if t < fastestTimes[i]:
-                    fastestTimes[i] = t;
 
-        map(str.strip, r)
+    i = 0
+    for col in raceSchedule.getHeader():
+        if 'time' in col and not 'timestamp' in col:
+            timeIndex.append(i)
+            fastestTimes.append(999999)
+        i += 1
 
-        if len(table) > 0:
-            for i in range(len(r)):
-                if 'car' in table[0][i]:
-                    r[i] = '<b>' + r[i] + '</b>'
-        table.append(r)
+    for heat in raceSchedule.getRows():
+        for i in range(len(timeIndex)):
+            try:
+                fastestTimes[i] = min(fastestTimes[i], float(heat[timeIndex[i]]))
+            except:
+                print("An exception occurred")
+
+    data = []
+    columns = []
+
+    colCount = {}
+    for col in raceSchedule.getHeader():
+        if not col in colCount:
+            colCount[col] = 0
+        else:
+            colCount[col] += 1
+        columns.append(getTableColSettingsWithCookie('index', col + str(colCount[col]), col))
+
+    for heat in raceSchedule.getRows():
+        heatInfo = {}
+        colCount = {}
+        for i in range(len(heat)):
+            col = raceSchedule.getColumnName(i)
+            if not col in colCount:
+                colCount[col] = 0
+            else:
+                colCount[col] += 1
+
+            heatInfo.update({col+str(colCount[col]): heat[i]})
+        data.append(heatInfo)
 
     fastestTimesStr = 'Fastest times: '
     for f in range(len(fastestTimes)):
         if fastestTimes[f] < 999:
             fastestTimesStr = fastestTimesStr + ' Lane ' + str(f+1) + ': ' + "{:.3f}".format(fastestTimes[f])
-    title = "Pinewood Derby"
 
-    return render_template("index.html", title = title, table=table, fastestTime=fastestTimesStr)
+    return render_template("index.html",
+                           title = "Pinewood Derby",
+                           data=data,
+                           columns=columns,
+                           fastestTime=fastestTimesStr
+                           )
 
 
 
@@ -127,6 +140,25 @@ def homepage():
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
                           'favicon.ico',mimetype='image/vnd.microsoft.icon')
+
+def getTableColSettingsWithCookie(pageId, field, title):
+    res = {}
+    vis = True
+
+    cookieName = pageId + 'ColVis' + field
+    if cookieName in flask.request.cookies and 'false' in flask.request.cookies.get(cookieName):
+        vis = False
+    cookieName = pageId + 'ColSort' + field
+
+
+    res['field'] =  field
+    res['title'] = title
+    res['sortable'] = True
+    if not vis:
+        res['visible'] = False
+    res.update()
+    return res
+    #columns = [{'field': 'car#', 'title': 'car#', 'sortable': True, 'visible': carnumVis},
 
 
 if __name__ == "__main__":

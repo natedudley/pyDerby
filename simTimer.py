@@ -2,56 +2,40 @@ import time
 from random import random
 
 import logger
+import CsvReader
 
 count = 40
-timeBetweenRaces = 3
+timeBetweenRaces = 1.5
 
 log = logger.logger()
 
-file = open('sampleData.csv', 'r')
-races = file.readlines()
-file.close()
+sampleData = CsvReader.CSVReader('sampleData.csv')
 
 carsLanesTime = {}
-race = races[0].split(',')
-header = []
 
-for r in race:
-    r = r.strip()
-    header.append(r)
-
-for race in races[1:]:
-    race = race.split(',')
+for heat in sampleData.getRows():
     curCar = 0
     curRace = 0;
     lane = 0
-    for i in range(len(race)):
-        r = race[i]
-        r = r.strip()
-        if 'car' in header[i]:
+    for i in range(len(heat)):
+        r = heat[i]
+        if 'car' in sampleData.getColumnName(i):
             lane = lane + 1
             curCar = r
             if not r in carsLanesTime:
                 carsLanesTime[r] = {}
-        if header[i] == 'time':
+        if sampleData.getColumnName(i) == 'time':
             carsLanesTime[curCar].update({lane: float(r)})
 
 racesLanesCar = []
-header = []
-file = open('raceSchedule.csv', 'r')
-races = file.readlines()
-file.close()
 
-race = races[0].split(',')
-for r in race:
-    header.append(r.strip())
+raceSchedule = CsvReader.CSVReader('raceSchedule.csv')
 
-for race in races[1:]:
-    r = race.split(',')
+for heat in raceSchedule.getRows():
     lanes = []
-    for j in range(len(r)):
-        if 'car' in header[j]:
-            lanes.append((r[j].strip()))
+    for j in range(len(heat)):
+        if 'car' in raceSchedule.getColumnName(j):
+            lanes.append(heat[j])
     racesLanesCar.append(lanes)
 
 for i in range(count):
