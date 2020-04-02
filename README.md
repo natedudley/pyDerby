@@ -6,3 +6,6 @@ This was developed against Python 3.8.
 Install requirements:
 - Flask: pip install flask
 - Bootstrap: pip install flask-bootstrap
+
+Timer instructions:
+- https://microwizard.com/downloads/instructions/k3_Kit_instructions.pdf
