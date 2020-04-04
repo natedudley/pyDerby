@@ -23,14 +23,16 @@ class Register:
 
         for i in  range(len(savedReg.getRows())):
             r = savedReg.getRows()[i]
-            person = {}
+            participant = {}
             self.regIDDict[int(r[savedReg.nameToIndex('regId')])] = i
             self.CarNumDict[r[savedReg.nameToIndex('carNum')]] = i
             for c in self.cols:
                 index = savedReg.nameToIndex(c)
                 if index >= 0:
-                    person[c] = r[index]
-            self.regData.append(person)
+                    participant[c] = r[index]
+                    if 'regId' in c:
+                        participant['edit'] = '<a href="/register?lookupRegId=' + participant['regId'] + '">edit</a>'
+            self.regData.append(participant)
 
     def getParticipant(self, refId):
         if refId in self.regIDDict:
