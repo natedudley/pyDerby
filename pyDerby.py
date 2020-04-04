@@ -6,11 +6,66 @@ import os
 from flask import send_from_directory
 import statistics
 import CsvReader
+import Register
+from threading import Lock
+import time
 
 app = Flask(__name__)
 
+registration = Register.Register('registration.csv')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    print(flask.request.values)
+    regId = -1
+    name=""
+    den=""
+    carNum=""
+    groups=['Lion', 'Tiger', 'Wolf', 'Webelos 1', 'Webelos 2', 'Adult']
+
+    alerts = []
+    if 'lookupRegId' in flask.request.values:
+        id = int(flask.request.values['lookupRegId'])
+        res = registration.getParticipant(id)
+        regId = id
+        if 'name' in res:
+            name = res['name']
+        if 'carNum' in res:
+            carNum = res['carNum']
+        if 'den' in res:
+            den = res['den']
+    elif(len(flask.request.values)>0):
+        alerts = registration.addParticipant(flask.request.values)
+        if len(alerts) > 0:
+            if 'regId' in flask.request.values:
+                regId = int(flask.request.values['regId'])
+            if 'name' in flask.request.values:
+                name = flask.request.values['name']
+            if 'carNum' in flask.request.values:
+                carNum = flask.request.values['carNum']
+            if 'den' in flask.request.values:
+                den = flask.request.values['den']
+
+
+    if regId < 0:
+        regId = registration.getNewRegId()
+
+    return render_template("register.html",
+                           data=registration.getHtmlData(),
+                           columns=registration.getHtmlCols(),
+                           regId=regId,
+                           name=name,
+                           carNum=carNum,
+                           den=den,
+                           alerts=alerts,
+                           groups=groups,
+                           title='Welcome to the Pinewood Derby!')
 @app.route('/cars')
 def cars():
+    if 'sleep' in flask.request.values:
+        s = float(flask.request.values['sleep'])
+        with lock:
+            time.sleep(s)
     data = []
     # other column settings -> http://bootstrap-table.wenzhixin.net.cn/documentation/#column-options
 
@@ -26,7 +81,7 @@ def cars():
     for h in raceSchedule.getHeader():
         if 'car' in h:
             count = count + 1
-            columns.append(getTableColSettingsWithCookie('cars', 'race#' + str(count), 'race#'))
+            columns.append(getTableColSettingsWithCookie('cars', 'heat#' + str(count), 'heat#'))
             columns.append(getTableColSettingsWithCookie('cars', 'pos' + str(count), 'pos'))
             columns.append(getTableColSettingsWithCookie('cars', 'time' + str(count), 'time'))
 
@@ -36,7 +91,7 @@ def cars():
     for heat in raceSchedule.getRows():
         curCar = 0
         count = 0
-        curRace = 0;
+        curHeat = 0;
         for i in range(len(heat)):
             h = heat[i]
             if 'car' in raceSchedule.getColumnName(i):
@@ -44,7 +99,7 @@ def cars():
                 curCar = h
                 if not h in cars:
                     cars[h] = {}
-                cars[curCar].update({'race#' + str(count): curRace})
+                cars[curCar].update({'heat#' + str(count): curHeat})
             if 'pos' in raceSchedule.getColumnName(i):
                 cars[curCar].update({'pos' + str(count): h})
             if raceSchedule.getColumnName(i) == 'time':
@@ -56,8 +111,8 @@ def cars():
                         carTimes[curCar] = [float(h)]
                 except ValueError:
                     pass
-            if 'race' in raceSchedule.getColumnName(i):
-                curRace = h
+            if 'heat' in raceSchedule.getColumnName(i):
+                curHeat = h
 
     for car in cars:
         row = {'car#': car}

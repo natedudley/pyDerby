@@ -1,0 +1,96 @@
+{%- extends "base.html" %}
+{% set active_page = "register" %}
+
+{% import "bootstrap/utils.html" as utils %}
+{% block content %}
+<div class="container" style="padding: 10px;">
+
+  {% for alert in alerts %}
+
+  <div class="alert alert-danger" role="alert">
+    {{alert|safe}}
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  {% endfor %}
+
+
+
+  <div class="jumbotron">
+    <form>
+      <div class="form-content" >
+        <div class="row">
+          <div class="col-md-6">
+            <div class="form-group">
+              <input type="text" class="form-control" name="name" placeholder="Name *" value="{{name}}"/>
+            </div>
+            <div class="form-group">
+              <input type="text" class="form-control" name="carNum" placeholder="Car Number *" value="{{carNum}}"/>
+            </div>
+          </div>
+
+
+{% for each in listStatus %}
+
+<option value="{{each}}" {% if each == "list_status" %} selected {% endif %}>{{each}}</option>
+
+{% endfor %}
+
+
+          <div class="col-md-6">
+            <select class="form-control" name="den">
+              {% for group in groups %}
+              <option value="{{group}}" {% if group == den %} selected {% endif %}>{{group}}</option>
+              {% endfor %}
+
+            </select>
+
+          </div>
+          <div class="form-group">
+            <input type="hidden" class="form-control" name="regId" value="{{regId}}"/>
+          </div>
+        </div>
+      </div>
+      <button type="submit"  name="submit" value="submit" class="btnSubmit">Submit</button>
+    </form>
+  </div>
+</div>
+
+<br/>
+
+<div id="toolbar"></div>
+<div class="container" style="overflow: auto;">
+  <table
+          id="table"
+          data-toggle="false"
+          data-toolbar="#toolbar"
+          data-search="true"
+          data-show-columns="true"
+          data-pagination="false"
+          data-striped="true">
+  </table>
+</div>
+</div>
+
+<script type='text/javascript'>
+  $(function() {
+    $('#table').bootstrapTable({
+          data: {{data|tojson}},
+          columns: {{columns|tojson}},
+
+          sortName: $.cookie('registerColSortName'),
+          sortOrder: $.cookie('registerColSortOrder'),
+
+          onColumnSwitch: function (field, checked) {
+            document.cookie = "carsColVis" + field + "=" + checked;
+          },
+          onSort: function (name, order) {
+            document.cookie = "registerColSortName=" + name;
+            document.cookie = "registerColSortOrder=" +  order;
+          }
+  });
+  })
+
+  </script>
+{%- endblock %}

@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html{% block html_attribs %}{% endblock html_attribs %}>
 {%- block html %}
-  <head>
+<head>
     {%- block head %}
     <title>{% block title %}{{title|default}}{% endblock title %}</title>
 
@@ -13,69 +13,72 @@
     {%- block styles %}
     <!-- Bootstrap -->
     <link href="{{bootstrap_find_resource('css/bootstrap.css', cdn='bootstrap')}}" rel="stylesheet">
-     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
     <link rel="icon" href="favicon.ico">
-        <script src="{{bootstrap_find_resource('jquery.js', cdn='jquery')}}"></script>
+    <script src="{{bootstrap_find_resource('jquery.js', cdn='jquery')}}"></script>
     <script src="{{bootstrap_find_resource('js/bootstrap.js', cdn='bootstrap')}}"></script>
     <script type='text/javascript' src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.11.1/bootstrap-table.min.js"></script>
-      <script type='text/javascript' src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <script type='text/javascript' src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
     {%- endblock styles %}
 
     {%- endblock head %}
-  </head>
-  <body{% block body_attribs %}{% endblock body_attribs %}>
-    {% block body -%}
+</head>
+<body{% block body_attribs %}{% endblock body_attribs %}>
+{% block body -%}
 
 
-    <div class="alert alert-info" role="alert">
-      This site uses cookies
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="acknowledgeCookies()">
+<div class="alertCookie alert-info" role="alert">
+    This site uses cookies
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close" onclick="acknowledgeCookies()">
         <span aria-hidden="true">&times;</span>
-      </button>
-    </div>
+    </button>
+</div>
 
-    {% block navbar %}
+{% block navbar %}
 
 {% set navigation_bar = [
-    ('/', 'index', 'Home'),
-    ('/cars', 'cars', 'Cars'),
+('/', 'index', 'Home'),
+('/cars', 'cars', 'Cars'),
+('/register', 'register', 'Register'),
 ] -%}
 {% set active_page = active_page|default('index') -%}
 
 <nav class="navbar navbar-default">
-  <div class="container-fluid">
-    <div class="navbar-header">
-      <a class="navbar-brand" href="https://mercerisland668.mypack.us//">Pack 668:</a>
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="https://mercerisland668.mypack.us//">Pack 668:</a>
+        </div>
+        <ul class="nav navbar-nav">
+
+            {% for href, id, caption in navigation_bar %}
+            <li{% if id == active_page %} class="active"{% endif
+            %}><a href="{{ href|e }}">{{ caption|e }}</a></li>
+            {% endfor %}
+        </ul>
     </div>
-    <ul class="nav navbar-nav">
-
-{% for href, id, caption in navigation_bar %}
-  <li{% if id == active_page %} class="active"{% endif
-  %}><a href="{{ href|e }}">{{ caption|e }}</a></li>
-{% endfor %}
-</ul>
-  </div>
 </nav>
-    {%- endblock navbar %}
-    {% block content -%}
-    {%- endblock content %}
+{%- endblock navbar %}
+{% block content -%}
+{%- endblock content %}
 
-    {% block scripts %}
+{% block scripts %}
 
 
 
-    {%- endblock scripts %}
+{%- endblock scripts %}
 
-    {%- endblock body %}
+{%- endblock body %}
 
-    <script>
+<script>
         if(!document.cookie.includes("acknowledgeCookies"))
         {
-            $('.alert').alert()
+            $('.alertCookie').alert()
         }
         else
         {
-            $('.alert').hide();
+            $('.alertCookie').hide();
         }
 
         function acknowledgeCookies() {
@@ -84,7 +87,7 @@
 
     </script>
 
-  </body>
+</body>
 {%- endblock html %}
 </html>
 {% endblock doc -%}

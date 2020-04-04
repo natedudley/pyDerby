@@ -70,7 +70,7 @@ putWaitingCarsInLanes(generateWaitingList())
 file = open('raceSchedule.csv', 'w+')
 
 
-file.write('race#, ')
+file.write('heat#, ')
 for i in range(1, numLanes+1):
     file.write('car' + str(i) + '#, pos, time'  + ', ')
 file.write('timestamp\n')

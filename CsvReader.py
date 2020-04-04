@@ -1,4 +1,5 @@
-
+import os.path
+from os import path
 
 class CSVReader:
     fileName = ""
@@ -7,9 +8,14 @@ class CSVReader:
 
     def __init__(self, fileName):
         self.fileName = fileName
-        file = open(fileName, 'r')
-        lines = file.readlines()
-        file.close()
+
+        if path.exists(fileName):
+            file = open(fileName, 'r')
+            lines = file.readlines()
+            file.close()
+        else:
+            lines = []
+
         self.rows = []
         self.header = []
 
@@ -20,11 +26,16 @@ class CSVReader:
 
             self.rows.append(vals)
 
+        self.headerToIndex = {}
         if len(self.rows) > 0:
             self.header = self.rows[0]
+            for i in range(len(self.header)):
+                self.headerToIndex[self.header[i]] = i
 
-        if len(self.rows) > 1:
+        if len(self.rows) > 0:
             self.rows = self.rows[1:]
+        else:
+            self.rows = []
 
     def getHeader(self):
         return self.header
@@ -36,4 +47,10 @@ class CSVReader:
         res = ''
         if index >= 0 and index < len(self.header):
             res = self.header[index]
+        return res
+
+    def nameToIndex(self, name):
+        res = -1;
+        if name in self.headerToIndex:
+            res = self.headerToIndex[name]
         return res
