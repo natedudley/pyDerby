@@ -21,7 +21,7 @@ def register():
     name=""
     den=""
     carNum=""
-    groups=['Lion', 'Tiger', 'Wolf', 'Webelos 1', 'Webelos 2', 'Adult']
+    groups=['Lion', 'Tiger', 'Wolf', 'Webelos1', 'Webelos2', 'Adult']
 
     alerts = []
     if 'lookupRegId' in flask.request.values:
@@ -72,6 +72,8 @@ def cars():
     raceSchedule = CsvReader.CSVReader('raceSchedule.csv')
 
     columns = [getTableColSettingsWithCookie('cars', 'car#', 'car#'),
+               getTableColSettingsWithCookie('cars', 'name', 'name'),
+               getTableColSettingsWithCookie('cars', 'den', 'den'),
                getTableColSettingsWithCookie('cars', 'min', 'min'),
                getTableColSettingsWithCookie('cars', 'avg', 'avg'),
                getTableColSettingsWithCookie('cars', 'total', 'total'),
@@ -116,6 +118,10 @@ def cars():
 
     for car in cars:
         row = {'car#': car}
+        participant = registration.getParticipantFromCar(car)
+        if len(participant) > 0:
+            row['name'] = participant['name']
+            row['den'] = participant['den']
         row.update(cars[car])
         if car in carTimes:
             row['avg'] = "{:.3f}".format(statistics.mean(carTimes[car]))
@@ -158,6 +164,14 @@ def homepage():
 
     colCount = {}
     for col in raceSchedule.getHeader():
+        if 'car' in col:
+            if not 'name' in colCount:
+                colCount['name'] = 0
+            else:
+                colCount['name'] += 1
+
+            columns.append(getTableColSettingsWithCookie('index', 'name' + str(colCount['name']), 'name'))
+
         if not col in colCount:
             colCount[col] = 0
         else:
@@ -175,6 +189,14 @@ def homepage():
                 colCount[col] += 1
 
             heatInfo.update({col+str(colCount[col]): heat[i]})
+            if 'car' in col:
+                participant = registration.getParticipantFromCar(heat[i])
+                if len(participant) > 0:
+                    if not 'name' in colCount:
+                        colCount['name'] = 0
+                    else:
+                        colCount['name'] += 1
+                    heatInfo['name'+str(colCount['name'])] = participant['name']
         data.append(heatInfo)
 
     fastestTimesStr = 'Fastest times: '

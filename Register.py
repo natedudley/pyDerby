@@ -19,13 +19,13 @@ class Register:
 
         self.regData = []
         self.regIDDict = {}
-        self.CarNumDict = {}
+        self.carNumDict = {}
 
         for i in  range(len(savedReg.getRows())):
             r = savedReg.getRows()[i]
             participant = {}
             self.regIDDict[int(r[savedReg.nameToIndex('regId')])] = i
-            self.CarNumDict[r[savedReg.nameToIndex('carNum')]] = i
+            self.carNumDict[r[savedReg.nameToIndex('carNum')]] = i
             for c in self.cols:
                 index = savedReg.nameToIndex(c)
                 if index >= 0:
@@ -37,6 +37,11 @@ class Register:
     def getParticipant(self, refId):
         if refId in self.regIDDict:
             return self.regData[self.regIDDict[refId]]
+        return {}
+
+    def getParticipantFromCar(self, carNum):
+        if carNum in self.carNumDict:
+            return self.regData[self.carNumDict[carNum]]
         return {}
 
     def addParticipant(self, args):
@@ -56,21 +61,21 @@ class Register:
             return ['Car number is missing']
 
         if not participant['regId'] in self.regIDDict or self.regIDDict[participant['regId']] < 0:
-            if participant['carNum'] in self.CarNumDict:
+            if participant['carNum'] in self.carNumDict:
                 return ['Car number <b> ' + participant['carNum'] + '</b> is already in use']
 
             self.regIDDict[participant['regId']] = len(self.regData)
-            self.CarNumDict[participant['carNum']] = len(self.regData)
+            self.carNumDict[participant['carNum']] = len(self.regData)
             self.regData.append(participant)
         else:
             i = self.regIDDict[participant['regId']]
             if participant['carNum'] != self.regData[i]['carNum']:
-                if participant['carNum'] in self.CarNumDict:
+                if participant['carNum'] in self.carNumDict:
                     return ['Car number <b> ' + participant['carNum'] + '</b> is already in use']
                 oldCarNum = self.regData[i]['carNum']
                 self.regData[i]['carNum'] = participant['carNum']
-                self.CarNumDict.pop(oldCarNum)
-                self.CarNumDict[participant['carNum']] = i
+                self.carNumDict.pop(oldCarNum)
+                self.carNumDict[participant['carNum']] = i
             if participant['name'] != self.regData[i]['name']:
                 self.regData[i]['name'] = participant['name']
             if participant['den'] != self.regData[i]['den']:
@@ -95,7 +100,7 @@ class Register:
             if len(names) > 1:
                 lastName = names[1]
             if firstName in displayNameCount and displayNameCount[firstName] > 1 and len(lastName) > 0:
-                self.regData[i]['displayName'] = firstName + ' ' + lastName[0]
+                self.regData[i]['displayName'] = firstName + ' ' + lastName
             else:
                 self.regData[i]['displayName'] = firstName
 

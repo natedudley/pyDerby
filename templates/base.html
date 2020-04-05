@@ -45,7 +45,7 @@
 ] -%}
 {% set active_page = active_page|default('index') -%}
 
-<nav class="navbar navbar-default">
+<nav class="navbar navbar-default" style="background-color: #ffCC00;">
     <div class="container-fluid">
         <div class="navbar-header">
             <a class="navbar-brand" href="https://mercerisland668.mypack.us//">Pack 668:</a>
@@ -83,6 +83,7 @@
 
         function acknowledgeCookies() {
           document.cookie = "acknowledgeCookies=true"
+          $('.alertCookie').hide();
         }
 
     </script>
