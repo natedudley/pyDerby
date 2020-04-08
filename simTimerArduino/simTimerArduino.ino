@@ -62,9 +62,9 @@ void loop()
   {
     strcpy_P(buffer, (char *)pgm_read_word(&(string_table[i]))); 
     Serial.println(buffer);
-    delay(500);
+    delay(9000);
      Serial.println("@");
-    delay(500);
+    delay(2000);
   }
 
   

@@ -1,9 +1,9 @@
 import sys
 import glob
 import serial
-import logger
+from classes import logger
 
-
+#method to display available serial ports
 def serial_ports():
     """ Lists serial port names
 
@@ -36,8 +36,8 @@ def serial_ports():
 
 if __name__ == '__main__':
     log = logger.logger()
-
-    file = open('serialPortLog.txt', 'w+')
+    file = open('backup/serialPortLog.txt', 'w+')
+    #you need to update the line below with your device
     s = serial.Serial('/dev/tty.usbmodem14201')
     print(s.name)
     while True:
@@ -54,6 +54,7 @@ if __name__ == '__main__':
                     times[2] = float(vals[1])
                 if 'D' in vals[0]:
                     times[3] = float(vals[1])
+                    # if the timer is turned around, times need to be reversed here.
                     log.logRace(times)
                     print(times)
 

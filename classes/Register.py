@@ -1,19 +1,17 @@
-import os.path
-from os import path
 from threading import Lock
 from datetime import datetime
 from pathlib import Path
-import CsvReader
+from classes import CsvReader
 
-
+#Register reads the data from a text file and stores it in memory. Unlike the race schedule, the service needs a restart if you manually edit the registraton csv file
 class Register:
-
-
     def __init__(self, fileName):
         self.fileName = fileName
         self.loc = Lock()
+        #the csv file has to use these column names as the first row.
         self.cols = ['regId', 'name', 'displayName', 'carNum', 'den']
 
+        #make sure no one else is using the file at the same time
         with self.loc:
             savedReg = CsvReader.CSVReader(fileName)
 
@@ -126,7 +124,12 @@ class Register:
     def save(self):
         self.uniqueDisplayName()
         with self.loc:
-            Path('backup').mkdir(exist_ok=True)
+            newPath = ''
+            backupFile = 'backup/' + self.fileName + datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+            for p in range(len(backupFile.split('/')) - 1):
+                newPath +=  backupFile.split('/')[p] + '/'
+                Path(newPath).mkdir(exist_ok=True)
+
             file = open(self.fileName, 'w')
             fileBackup = open('backup/' + self.fileName + datetime.now().strftime("%Y_%m_%d_%H_%M_%S"), 'w+')
 

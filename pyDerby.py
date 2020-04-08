@@ -1,18 +1,19 @@
 import flask
 from flask import Flask, render_template
 from flask_bootstrap import Bootstrap
-from flask import jsonify
 import os
 from flask import send_from_directory
 import statistics
-import CsvReader
-import Register
-from threading import Lock
 import time
+
+from classes import CsvReader
+from classes import Register
+
 
 app = Flask(__name__)
 
-registration = Register.Register('registration.csv')
+#registation is done here. There is a lock on registration.csv to make sure there are not multiple writes at the same time
+registration = Register.Register('csv/registration.csv')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -24,6 +25,7 @@ def register():
     groups=['Lion', 'Tiger', 'Wolf', 'Webelos1', 'Webelos2', 'Adult']
 
     alerts = []
+    #used to edit participant information
     if 'lookupRegId' in flask.request.values:
         id = int(flask.request.values['lookupRegId'])
         res = registration.getParticipant(id)
@@ -34,6 +36,7 @@ def register():
             carNum = res['carNum']
         if 'den' in res:
             den = res['den']
+    #used to add a new participant
     elif(len(flask.request.values)>0):
         alerts = registration.addParticipant(flask.request.values)
         if len(alerts) > 0:
@@ -60,16 +63,13 @@ def register():
                            alerts=alerts,
                            groups=groups,
                            title='Welcome to the Pinewood Derby!')
+
 @app.route('/cars')
 def cars():
-    if 'sleep' in flask.request.values:
-        s = float(flask.request.values['sleep'])
-        with lock:
-            time.sleep(s)
     data = []
     # other column settings -> http://bootstrap-table.wenzhixin.net.cn/documentation/#column-options
 
-    raceSchedule = CsvReader.CSVReader('raceSchedule.csv')
+    raceSchedule = CsvReader.CSVReader('csv/raceSchedule.csv')
 
     columns = [getTableColSettingsWithCookie('cars', 'car#', 'car#'),
                getTableColSettingsWithCookie('cars', 'name', 'name'),
@@ -131,8 +131,6 @@ def cars():
 
         data.append(row)
 
-
-
     return render_template("cars.html",
       data=data,
       columns=columns,
@@ -140,7 +138,7 @@ def cars():
 
 @app.route('/')
 def homepage():
-    raceSchedule = CsvReader.CSVReader('raceSchedule.csv')
+    raceSchedule = CsvReader.CSVReader('csv/raceSchedule.csv')
 
     timeIndex = []
     fastestTimes = []
@@ -157,20 +155,23 @@ def homepage():
             try:
                 fastestTimes[i] = min(fastestTimes[i], float(heat[timeIndex[i]]))
             except:
-                print("An exception occurred")
+                pass
 
     data = []
     columns = []
 
     colCount = {}
     for col in raceSchedule.getHeader():
+
         if 'car' in col:
             if not 'name' in colCount:
                 colCount['name'] = 0
             else:
                 colCount['name'] += 1
 
+            columns.append(getTableColSettingsWithCookie('index', str(colCount['name']+1), '<b>' + str(colCount['name']+1) + '</b>'))
             columns.append(getTableColSettingsWithCookie('index', 'name' + str(colCount['name']), 'name'))
+            columns.append(getTableColSettingsWithCookie('index', 'result' + str(colCount['name']), 'result'))
 
         if not col in colCount:
             colCount[col] = 0
@@ -181,6 +182,8 @@ def homepage():
     for heat in raceSchedule.getRows():
         heatInfo = {}
         colCount = {}
+        curLane = 0
+        curPos = ""
         for i in range(len(heat)):
             col = raceSchedule.getColumnName(i)
             if not col in colCount:
@@ -190,13 +193,27 @@ def homepage():
 
             heatInfo.update({col+str(colCount[col]): heat[i]})
             if 'car' in col:
+                if not 'name' in colCount:
+                    colCount['name'] = 0
+                else:
+                    colCount['name'] += 1
+                curLane = colCount['name'] + 1
+                heatInfo[str(curLane)] = '<b>' + str(curLane) + '</b>'
+
                 participant = registration.getParticipantFromCar(heat[i])
                 if len(participant) > 0:
-                    if not 'name' in colCount:
-                        colCount['name'] = 0
-                    else:
-                        colCount['name'] += 1
-                    heatInfo['name'+str(colCount['name'])] = participant['name']
+                    heatInfo['name'+str(colCount['name'])] = participant['name'] + ' (' + participant['carNum'] + ')'
+                else:
+                    heatInfo['name' + str(colCount['name'])] = '?' + ' (' + heat[i] + ')'
+            if 'pos' in col:
+                curPos = heat[i]
+            if 'time' == col:
+                if '-' in curPos:
+                    result = '-'
+                else:
+                    result =   curPos + ' <i>(' +  heat[i] +')</i>'
+                heatInfo['result' + str(curLane - 1)] = result
+
         data.append(heatInfo)
 
     fastestTimesStr = 'Fastest times: '
@@ -218,6 +235,7 @@ def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
                           'favicon.ico',mimetype='image/vnd.microsoft.icon')
 
+#used to get save settings for which columns are turned on and off
 def getTableColSettingsWithCookie(pageId, field, title):
     res = {}
     vis = True

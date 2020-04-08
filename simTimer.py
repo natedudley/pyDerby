@@ -1,18 +1,19 @@
 import time
 from random import random
+from classes import logger
+from classes import CsvReader
 
-import logger
-import CsvReader
-
+#simulator to play back an actual previous race for testing purposes
 count = 40
 timeBetweenRaces = 0.5
 
 log = logger.logger()
 
-sampleData = CsvReader.CSVReader('sampleData.csv')
+sampleData = CsvReader.CSVReader('csv/sampleData.csv')
 
 carsLanesTime = {}
 
+#maps a previous race by car and lane. In the playback regardless of order, the cars get the same average and min time as in the origional race.
 for heat in sampleData.getRows():
     curCar = 0
     curRace = 0;
@@ -29,7 +30,7 @@ for heat in sampleData.getRows():
 
 racesLanesCar = []
 
-raceSchedule = CsvReader.CSVReader('raceSchedule.csv')
+raceSchedule = CsvReader.CSVReader('csv/raceSchedule.csv')
 
 for heat in raceSchedule.getRows():
     lanes = []
@@ -38,7 +39,8 @@ for heat in raceSchedule.getRows():
             lanes.append(heat[j])
     racesLanesCar.append(lanes)
 
-fileArduino = open('arduinoSample.txt', 'w+')
+#fileArduino is used to build an emulator of the real timer on an Arduino board to test the serial interfaces.
+fileArduino = open('csv/arduinoSample.txt', 'w+')
 stringArrayArduino = "const char *const string_table[] PROGMEM = {"
 for i in range(count):
     if i < len(racesLanesCar):
