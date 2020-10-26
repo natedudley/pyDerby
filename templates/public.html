@@ -1,0 +1,88 @@
+{# This simple template derives from ``base.html``. See ``base.html`` for
+more information about template inheritance. #}
+{%- extends "base.html" %}
+
+{% block navbar %}
+
+{% set navigation_bar = [
+('/', 'index', 'Home'),
+] -%}
+{% set active_page = active_page|default('index') -%}
+
+<nav class="navbar navbar-default" style="background-color: #ffCC00;">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="https://www.mercerislandcubscouts.org/">Pack 668:</a>
+        </div>
+        <ul class="nav navbar-nav">
+
+            {% for href, id, caption in navigation_bar %}
+            <li{% if id == active_page %} class="active"{% endif
+            %}><a href="{{ href|e }}">{{ caption|e }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+</nav>
+{%- endblock navbar %}
+
+{% set active_page = "index" %}
+
+{# Loads some of the macros included with Flask-Bootstrap. We are using the
+utils module here to automatically render Flask's flashed messages in a
+bootstrap friendly manner #}
+{% import "bootstrap/utils.html" as utils %}
+
+
+{# Inside the ``content`` is where you should place most of your own stuff.
+This will keep scripts at the page end and a navbar you add on later
+intact. #}
+{% block content %}
+
+
+<h1>Schedule</h1>
+<div class="container">
+    <table class="table table-striped" id="tableSchedule"
+           data-toggle="true"
+           data-toolbar="#toolbar"
+           data-search="false"
+           data-show-columns="false"
+           data-pagination="false"
+           data-sortable="false"
+           data-striped="true">
+    </table>
+</div>
+
+<h1>Cars</h1>
+<div class="container">
+    <table class="table table-striped" id="tableCars"
+           data-toggle="true"
+           data-toolbar="#toolbar"
+           data-search="false"
+           data-show-columns="false"
+           data-pagination="false"
+           data-sortable="false"
+           data-striped="true">
+    </table>
+</div>
+
+<script type='text/javascript'>
+  $(function() {
+    $('#tableSchedule').bootstrapTable({
+          data: {{data|tojson}},
+          columns: {{columns|tojson}},
+  });
+  })
+
+  $(function() {
+    $('#tableCars').bootstrapTable({
+          data: {{dataCars|tojson}},
+          columns: {{columnsCars|tojson}},
+  });
+  })
+
+
+
+  </script>
+
+
+{%- endblock %}

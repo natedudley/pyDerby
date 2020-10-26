@@ -24,6 +24,7 @@ class CSVReader:
             for i in range(len(vals)):
                 vals[i] = vals[i].strip()
 
+
             self.rows.append(vals)
 
         self.headerToIndex = {}

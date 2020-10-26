@@ -208,7 +208,7 @@ def homepage():
             if 'pos' in col:
                 curPos = heat[i]
             if 'time' == col:
-                if '-' in curPos:
+                if '-' in curPos or curPos == ' ' or  curPos == '':
                     result = '-'
                 else:
                     result =   curPos + ' <i>(' +  heat[i] +')</i>'
