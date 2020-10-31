@@ -68,6 +68,41 @@ class RaceSchedule:
                     collision = True
         return collision
 
+    # car that do not race each other
+    def didNotCompeteDirectly(self):
+        carsByRows = []
+        cars = {}
+        for l in range(0, len(self.lanes)):
+            for i in range(0, len(self.lanes[l])):
+                carNum = self.lanes[l][i]
+                if i +1 > len(carsByRows):
+                    carsByRows.append([])
+                carsByRows[i].append(carNum)
+
+        for c in self.carsInRace:
+            cars[c] = []
+            for c2 in self.carsInRace:
+                if not c == c2:
+                    cars[c].append(c2)
+
+        for c in cars:
+            for r in carsByRows:
+                if c in r:
+                    for c2 in r:
+                        if c2 in cars[c]:
+                            cars[c].remove(c2)
+
+        didNotCompete = {}
+        for c in cars:
+            if len(cars[c]) > 0:
+                didNotCompete[c] = cars[c]
+                print(str(c) + " did not compete against: ", end='')
+                for ca in cars[c]:
+                    print(str(ca) + ", ", end='')
+                print('')
+
+        return didNotCompete
+
 
     #sorts the cars into lanes, making sure each car gets to use a different lane each time
     def putWaitingCarsInLanes(self, carsWaiting):
@@ -130,7 +165,7 @@ class RaceSchedule:
 
         file.close()
 
-    def initLanes(self):
+    def initLanes(self, updateExisting=False):
         self.lanes = []
         if self.numCars < self.numLanes:
             self.numLanes = self.numCars
@@ -138,7 +173,7 @@ class RaceSchedule:
             self.lanes.append([])
 
         cars = []
-        if path.exists(self.fileName):
+        if path.exists(self.fileName) and updateExisting:
             prevSched = CsvReader.CSVReader(self.fileName)
 
             carHeaders = ['car1#', 'car2#', 'car3#', 'car4#']
@@ -168,40 +203,43 @@ class RaceSchedule:
                 listA.remove(r)
                 listB.remove(r)
 
-    def byDen(self, name):
-        name = name.lower()
+    def byDen(self, denName, updateExisting=False):
+        denName = denName.lower()
 
         reg = CsvReader.CSVReader('../csv/registration.csv')
 
-        cars = []
+        self.carsInRace = []
         for r in reg.rows:
-            if r[reg.headerToIndex['den']].lower() == name and r[reg.headerToIndex['checkedIn']].lower() == 'yes':
+            if denName in r[reg.headerToIndex['den']].lower() and r[reg.headerToIndex['checkedIn']].lower() == 'yes':
                 carNum = int(r[reg.headerToIndex['carNum']])
-                cars.append((carNum))
+                self.carsInRace.append((carNum))
 
-        self.numCars = len(cars)
+        self.numCars = len(self.carsInRace)
 
         if numCars < 1:
-            print("no cars for: " + name)
+            print("no cars for: " + denName)
             return
 
         found = False
         while not found:
             print('placing cars:')
-            usedCars = self.initLanes()
+            usedCars = self.initLanes(updateExisting)
 
             carsWaiting = deque()
-            carsCopy = cars.copy()
+            carsCopy = self.carsInRace.copy()
             self.removeFromList(usedCars, carsCopy)
             carsWaiting.append(deque(carsCopy))
             for i in range(1, self.numLanes):
-                carsCopy = cars.copy()
+                carsCopy = self.carsInRace.copy()
                 self.removeFromList(usedCars, carsCopy)
                 carsWaiting.append(deque(random.sample(carsCopy, len(carsCopy))))
 
             found = self.putWaitingCarsInLanes(carsWaiting)
 
         print('found spots')
+        self.didNotCompeteDirectly()
+
+
         self.writeSchedule()
 
 if __name__ == "__main__":

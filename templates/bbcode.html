@@ -1,0 +1,82 @@
+{%- extends "publicBase.html" %}
+
+{%- block metas %}
+
+
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+
+		<title>SCEditor Demo</title>
+
+		<link rel="stylesheet" href="static/minified/themes/default.min.css" id="theme-style" />
+
+		<script src="static/minified/sceditor.min.js"></script>
+		<script src="static/minified/icons/monocons.js"></script>
+		<script src="static/minified/formats/bbcode.js"></script>
+
+		<style>
+			html {
+				font-family: Arial, Helvetica, sans-serif;
+				font-size: 13px;
+			}
+			form div {
+				padding: .5em;
+			}
+			code:before {
+				position: absolute;
+				content: 'Code:';
+				top: -1.35em;
+				left: 0;
+			}
+			code {
+				margin-top: 1.5em;
+				position: relative;
+				background: #eee;
+				border: 1px solid #aaa;
+				white-space: pre;
+				padding: .25em;
+				min-height: 1.25em;
+			}
+			code:before, code {
+				display: block;
+				text-align: left;
+			}
+		</style>
+
+
+{%- endblock metas %}
+
+{% block content %}
+
+		<form action="" method="post">
+			<div>
+				<textarea id="example" style="height:300px;width:600px;"></textarea>
+
+
+			</div>
+		</form>
+
+        <button onclick="myFunction()">Try it</button>
+
+        <script>
+        function myFunction() {
+          var str = sceditor.instance(textarea).val();
+          txt = str.replace(/\[color=#[0-9]*\]/g,'').replace(/\[\/color\]/g,'')
+          txt = txt.replace(/\[size=[0-9]*\]/g,'').replace(/\[\/size\]/g,'')
+          txt = txt.replace(/\[font=[a-zA-Z]*\]/g,'').replace(/\[\/font\]/g,'')
+          sceditor.instance(textarea).val(txt);
+        }
+        </script>
+
+
+		<script>
+			var textarea = document.getElementById('example');
+			sceditor.create(textarea, {
+				format: 'bbcode',
+				icons: 'monocons',
+				style: 'static/minified/themes/content/default.min.css',
+				emoticonsEnabled: false,
+				toolbarExclude: 'emoticon,font,size,left,center,right,justify,subscript,superscript,scoure,maximize,print,rtl,ltr'
+			});
+		</script>
+
+{%- endblock %}

@@ -44,6 +44,10 @@ def root():
                            columnsCars=carsRes['columns'],
                            )
 
+@app.route('/bbcode')
+def bbcode():
+    return render_template('bbcode.html')
+
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
