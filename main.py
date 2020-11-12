@@ -44,6 +44,29 @@ def root():
                            columnsCars=carsRes['columns'],
                            )
 
+@app.route('/gallery')
+def gallery():
+    gallery = []
+    basePath = 'static/gallery/'
+    dirs = os.listdir(basePath)
+    for d in dirs:
+        if(os.path.isdir(basePath + d)):
+            carNum = d
+            carPath = 'gallery/' + carNum + '/'
+            files = os.listdir('static/' + carPath)
+            images = []
+            youTubeId = ''
+            for file in files:
+                if '.id' in file:
+                    f = open("static/" +carPath+file, "r")
+                    youTubeId = f.readline()
+                elif ('.jpg' in file or '.png' in file):
+                    images.append(carPath + file)
+            carInfo = {'carNum': carNum, 'images': images, 'youTubeId': youTubeId}
+            gallery.append(carInfo)
+
+    return render_template('gallery.html', gallery=gallery)
+
 @app.route('/bbcode')
 def bbcode():
     return render_template('bbcode.html')

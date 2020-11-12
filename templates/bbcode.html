@@ -63,6 +63,10 @@
           txt = str.replace(/\[color=#[0-9]*\]/g,'').replace(/\[\/color\]/g,'')
           txt = txt.replace(/\[size=[0-9]*\]/g,'').replace(/\[\/size\]/g,'')
           txt = txt.replace(/\[font=[a-zA-Z]*\]/g,'').replace(/\[\/font\]/g,'')
+          txt = txt.replace(/\[td*\]/g,'').replace(/\[\/td\]/g,'')
+          txt = txt.replace(/\[tr*\]/g,'').replace(/\[\/tr\]/g,'')
+          txt = txt.replace(/\[left*\]/g,'').replace(/\[\/left\]/g,'')
+          txt = txt.replace(/\[table*\]/g,'').replace(/\[\/table\]/g,'')
           sceditor.instance(textarea).val(txt);
         }
         </script>
