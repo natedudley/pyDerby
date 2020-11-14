@@ -6,15 +6,10 @@ from os import path
 
 class RaceSchedule:
 
-    lanes = []
-    numCars = 40
-    numLanes = 4;
-    fileName = ''
-
     def __init__(self, fileName, numLanes=4):
 
-        if numLanes > numCars:
-            numLanes = numCars
+        self.numLanes = numLanes
+        self.numCars = 40
 
         self.fileName = fileName
         if path.exists(self.fileName):
@@ -41,10 +36,10 @@ class RaceSchedule:
         l = []
         val = 1
         startVal = val
-        for i in range(0, numCars):
+        for i in range(0, self.numCars):
             l.append(val)
             val = val + skipAmount
-            if val > numCars:
+            if val > self.numCars:
                 startVal = startVal + 1
                 val = startVal
         return l
@@ -52,7 +47,7 @@ class RaceSchedule:
     #returns an array of deque/queue
     def generateWaitingList(self):
         carsWaiting = deque()
-        carsWaiting.append(deque((range(1, numCars+1))))
+        carsWaiting.append(deque((range(1, self.numCars+1))))
         carsWaiting.append(deque(self.getSeperatedCarList(5)))
         for i in range(2, self.numLanes):
             carsWaiting.append(deque(random.sample(list(range(1, self.numCars+1)), self.numCars)))
@@ -67,6 +62,16 @@ class RaceSchedule:
                 if self.lanes[i][pos] == val:
                     collision = True
         return collision
+
+    def printDidNotCompetDirectly(self, res):
+        cars =res['byCar']
+        for c in cars:
+            if len(cars[c]) > 0:
+                print(str(c) + " did not compete against: ", end='')
+                for ca in cars[c]:
+                    print(str(ca) + ", ", end='')
+                print('')
+        print('total did not compete againt another: ' + str(res['totalCount']) + ' max: ' + str(res['max']) + ' backToBackCount:' + str(res['backToBackCount']))
 
     # car that do not race each other
     def didNotCompeteDirectly(self):
@@ -93,14 +98,33 @@ class RaceSchedule:
                             cars[c].remove(c2)
 
         didNotCompete = {}
+        byCar = {}
+        totalCount = 0
+        max = 0
         for c in cars:
             if len(cars[c]) > 0:
-                didNotCompete[c] = cars[c]
-                print(str(c) + " did not compete against: ", end='')
+                byCar[c] = cars[c]
+                total = 0
                 for ca in cars[c]:
-                    print(str(ca) + ", ", end='')
-                print('')
+                    totalCount += 1
+                    total +=1
 
+                if total > max:
+                    max = total
+
+        didNotCompete['byCar'] = byCar
+        didNotCompete['totalCount'] = totalCount
+        didNotCompete['max'] = max
+
+        #how many competed in previous race?
+        backToBackCount = 0
+        for r in range (1, len(carsByRows)):
+            row1 = carsByRows[r-1]
+            row2 = carsByRows[r]
+            backToBackCount += len(set(row1) & set(row2))
+
+
+        didNotCompete['backToBackCount'] = backToBackCount
         return didNotCompete
 
 
@@ -126,9 +150,9 @@ class RaceSchedule:
                                 pq = pq[1:] + pq[:1]
 
                             if qPassCount > 1000:
-                                print("could not find spots for: ")
-                                for q in curQ:
-                                    print(str(q))
+                                #print("could not find spots for: ")
+                                #for q in curQ:
+                                #    print(str(q))
                                 return False
                     else:
                         pq = pq[1:] + pq[:1]
@@ -142,7 +166,7 @@ class RaceSchedule:
         file = open(self.fileName, 'w+')
 
         file.write('heat#, ')
-        for i in range(1, numLanes + 1):
+        for i in range(1, self.numLanes + 1):
             file.write('car' + str(i) + '#, pos, time' + ', ')
         file.write('timestamp\n')
 
@@ -158,7 +182,7 @@ class RaceSchedule:
 
         for i in range(start, len(self.lanes[0])):
             file.write(str(i + 1) + ', ')
-            for j in range(0, numLanes):
+            for j in range(0, self.numLanes):
                 if i < len(self.lanes[j]):
                     file.write(str(self.lanes[j][i]) + ', -, -,')
             file.write('-\n')
@@ -167,9 +191,8 @@ class RaceSchedule:
 
     def initLanes(self, updateExisting=False):
         self.lanes = []
-        if self.numCars < self.numLanes:
-            self.numLanes = self.numCars
-        for i in range(0, numLanes):
+
+        for i in range(0, self.numLanes):
             self.lanes.append([])
 
         cars = []
@@ -179,7 +202,7 @@ class RaceSchedule:
             carHeaders = ['car1#', 'car2#', 'car3#', 'car4#']
             for r in prevSched.rows:
                 if len(r[prevSched.headerToIndex['timestamp']]) > 2:
-                    for i in range(1,numLanes+1):
+                    for i in range(1,self.numLanes+1):
                         h = 'car' + str(i) + '#'
                         if h in prevSched.headerToIndex:
                             carNum = int(r[prevSched.headerToIndex[h]])
@@ -203,20 +226,20 @@ class RaceSchedule:
                 listA.remove(r)
                 listB.remove(r)
 
-    def byDen(self, denName, updateExisting=False):
-        denName = denName.lower()
+    def byDenOld(self, denName, updateExisting=False):
+        denName = denName.lower().strip()
 
         reg = CsvReader.CSVReader('../csv/registration.csv')
 
         self.carsInRace = []
         for r in reg.rows:
-            if denName in r[reg.headerToIndex['den']].lower() and r[reg.headerToIndex['checkedIn']].lower() == 'yes':
+            if denName == r[reg.headerToIndex['den']].lower().strip() and r[reg.headerToIndex['checkedIn']].lower() == 'yes':
                 carNum = int(r[reg.headerToIndex['carNum']])
                 self.carsInRace.append((carNum))
 
         self.numCars = len(self.carsInRace)
 
-        if numCars < 1:
+        if self.numCars < 1:
             print("no cars for: " + denName)
             return
 
@@ -238,13 +261,84 @@ class RaceSchedule:
 
         print('found spots')
         self.didNotCompeteDirectly()
+        self.writeSchedule()
 
+    def byDen(self, denName, updateExisting=False):
+        denName = denName.lower().strip()
+
+        reg = CsvReader.CSVReader('../csv/registration.csv')
+
+        self.carsInRace = []
+        for r in reg.rows:
+            if denName == r[reg.headerToIndex['den']].lower().strip() and r[reg.headerToIndex['checkedIn']].lower() == 'yes':
+                carNum = int(r[reg.headerToIndex['carNum']])
+                self.carsInRace.append((carNum))
+
+        self.numCars = len(self.carsInRace)
+
+        if self.numCars < 3:
+            print("need at least 3 cars for: " + denName)
+            return
+
+        if self.numCars == 3:
+            self.numCars += 1
+            self.carsInRace.append(0)
+
+        found = False
+        self.finalLanes = None
+        self.bestLanes = None
+
+
+        tries = 10
+        if self.numCars > 3:
+            tries = 500
+        if self.numCars > 6:
+            tries = 1000
+        if self.numCars > 9:
+            tries = 2000
+
+        print('tries: ' + str(tries))
+        for j in range(0,tries):
+            if j % 1000 == 0:
+                print('.', end='')
+            usedCars = self.initLanes(updateExisting)
+
+            carsWaiting = deque()
+            carsCopy = self.carsInRace.copy()
+            self.removeFromList(usedCars, carsCopy)
+            carsWaiting.append(deque(carsCopy))
+            for i in range(1, self.numLanes):
+                carsCopy = self.carsInRace.copy()
+                self.removeFromList(usedCars, carsCopy)
+                carsWaiting.append(deque(random.sample(carsCopy, len(carsCopy))))
+
+            if self.putWaitingCarsInLanes(carsWaiting):
+                if self.finalLanes == None:
+                    self.finalLanes = self.lanes
+                    self.bestLanes = self.didNotCompeteDirectly()
+                    print('placing cars attempt: ' + str(j))
+                    self.printDidNotCompetDirectly(self.bestLanes)
+                else:
+                    res = self.didNotCompeteDirectly()
+                    if res['max'] < self.bestLanes['max'] or \
+                            (res['max'] == self.bestLanes['max'] and res['totalCount'] < self.bestLanes['totalCount']) or \
+                            (res['backToBackCount'] < self.bestLanes['backToBackCount'] and res['max'] == self.bestLanes['max'] and res['totalCount'] == self.bestLanes['totalCount']):
+                        self.finalLanes = self.lanes
+                        self.bestLanes = res
+                        print('placing cars: ' + str(j))
+                        self.printDidNotCompetDirectly(res)
+
+
+
+        self.lanes = self.finalLanes
 
         self.writeSchedule()
 
 if __name__ == "__main__":
     numLanes = 4
-    numCars = 40
-    rs = RaceSchedule('../csv/raceSchedule.csv')
+    rs = RaceSchedule('../csv/raceSchedule.csv', numLanes)
     #basic(numLanes, numCars)
     rs.byDen("Tiger")
+    #rs.byDen("Bear")
+    #rs.byDen("Webelos I")
+    #rs.byDen("Webelos II")

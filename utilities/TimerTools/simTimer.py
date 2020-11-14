@@ -9,7 +9,7 @@ timeBetweenRaces = 0.5
 
 log = logger.logger()
 
-sampleData = CsvReader.CSVReader('../csv/sampleData.csv')
+sampleData = CsvReader.CSVReader('../../csv/sampleData.csv')
 
 carsLanesTime = {}
 
@@ -30,7 +30,7 @@ for heat in sampleData.getRows():
 
 racesLanesCar = []
 
-raceSchedule = CsvReader.CSVReader('../csv/raceSchedule.csv')
+raceSchedule = CsvReader.CSVReader('../../csv/raceSchedule.csv')
 
 for heat in raceSchedule.getRows():
     lanes = []
@@ -40,7 +40,7 @@ for heat in raceSchedule.getRows():
     racesLanesCar.append(lanes)
 
 #fileArduino is used to build an emulator of the real timer on an Arduino board to test the serial interfaces.
-fileArduino = open('../csv/arduinoSample.txt', 'w+')
+fileArduino = open('../../csv/arduinoSample.txt', 'w+')
 stringArrayArduino = "const char *const string_table[] PROGMEM = {"
 for i in range(count):
     if i < len(racesLanesCar):

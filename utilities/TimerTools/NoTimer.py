@@ -7,7 +7,7 @@ window = Tk()
 window.title("No Timer")
 window.geometry('350x200')
 
-os.chdir('../')
+os.chdir('../../')
 
 def submitCallBack():
    log = logger.logger()
