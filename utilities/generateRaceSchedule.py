@@ -162,7 +162,7 @@ class RaceSchedule:
 
 
 
-    def writeSchedule(self):
+    def writeSchedule(self, updateExisting):
         file = open(self.fileName, 'w+')
 
         file.write('heat#, ')
@@ -171,7 +171,7 @@ class RaceSchedule:
         file.write('timestamp\n')
 
         start = 0
-        if path.exists(self.fileName):
+        if path.exists(self.fileName) and updateExisting:
             for r in self.prevSched.rows:
                 if len(r[self.prevSched.headerToIndex['timestamp']]) > 2:
                     start += 1
@@ -332,13 +332,13 @@ class RaceSchedule:
 
         self.lanes = self.finalLanes
 
-        self.writeSchedule()
+        self.writeSchedule(updateExisting)
 
 if __name__ == "__main__":
     numLanes = 4
     rs = RaceSchedule('../csv/raceSchedule.csv', numLanes)
     #basic(numLanes, numCars)
-    rs.byDen("Tiger")
+    #rs.byDen("Tiger")
     #rs.byDen("Bear")
-    #rs.byDen("Webelos I")
+    rs.byDen("Webelos I")
     #rs.byDen("Webelos II")

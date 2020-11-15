@@ -16,12 +16,13 @@
 import datetime
 import pytz
 
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 from flask import send_from_directory
 from flask_bootstrap import Bootstrap
 from google.cloud import firestore
 
 import os
+
 
 from classes import ScheduleParser
 
@@ -36,12 +37,13 @@ def root():
     scheduleRes = doc.get().to_dict()
     doc = datastore_client.collection('Derby').document('Cars')
     carsRes = doc.get().to_dict()
+    doc = datastore_client.collection('Derby').document('CurrentHeat')
+    currentHeatRes = doc.get().to_dict()
 
     return render_template('public.html',
-                           data=scheduleRes['data'],
-                           columns=scheduleRes['columns'],
-                           dataCars=carsRes['data'],
+                           columnsSchedule=scheduleRes['columns'],
                            columnsCars=carsRes['columns'],
+                           columnsCurrentHeat=currentHeatRes['columns'],
                            )
 
 @app.route('/gallery')
@@ -66,6 +68,22 @@ def gallery():
             gallery.append(carInfo)
 
     return render_template('gallery.html', gallery=gallery)
+
+@app.route('/api/schedule', methods=['GET'])
+def get_schedule():
+    doc = datastore_client.collection('Derby').document('Schedule')
+    return jsonify(doc.get().to_dict()['data'])
+
+@app.route('/api/cars', methods=['GET'])
+def get_cars():
+    doc = datastore_client.collection('Derby').document('Cars')
+    return jsonify(doc.get().to_dict()['data'])
+
+@app.route('/api/currentHeat', methods=['GET'])
+def get_currentHeat():
+    doc = datastore_client.collection('Derby').document('CurrentHeat')
+    return jsonify(doc.get().to_dict()['data'])
+
 
 @app.route('/bbcode')
 def bbcode():

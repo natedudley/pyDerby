@@ -15,6 +15,19 @@ This will keep scripts at the page end and a navbar you add on later
 intact. #}
 {% block content %}
 
+<h1>Current Heat</h1>
+<div class="container">
+    <table class="table table-striped" id="tableHeat"
+           data-toggle="true"
+           data-toolbar="#toolbar"
+           data-search="false"
+           data-show-columns="false"
+           data-pagination="false"
+           data-sortable="false"
+           data-striped="true"
+           data-url={{ url_for('get_currentHeat') }}>
+    </table>
+</div>
 
 <h1>Schedule</h1>
 <div class="container">
@@ -25,7 +38,8 @@ intact. #}
            data-show-columns="false"
            data-pagination="false"
            data-sortable="false"
-           data-striped="true">
+           data-striped="true"
+           data-url={{ url_for('get_schedule') }}>
     </table>
 </div>
 
@@ -38,25 +52,47 @@ intact. #}
            data-show-columns="false"
            data-pagination="false"
            data-sortable="false"
-           data-striped="true">
+           data-striped="true"
+           data-url={{ url_for('get_cars') }}>
     </table>
 </div>
 
 <script type='text/javascript'>
   $(function() {
     $('#tableSchedule').bootstrapTable({
-          data: {{data|tojson}},
-          columns: {{columns|tojson}},
+          columns: {{columnsSchedule|tojson}},
+  });
+  })
+  $(function() {
+    $('#tableHeat').bootstrapTable({
+          columns: {{columnsCurrentHeat|tojson}},
   });
   })
 
   $(function() {
     $('#tableCars').bootstrapTable({
-          data: {{dataCars|tojson}},
           columns: {{columnsCars|tojson}},
   });
   })
 
+    $(function(){
+
+        var counter = 0;
+        var refreshEveryNumSecs = 20
+        var looper = setInterval(function(){
+            counter++;
+            console.log("Counter is: " + counter);
+            $('#tableSchedule').bootstrapTable('refresh', {silent: true});
+            $('#tableCars').bootstrapTable('refresh', {silent: true});
+            $('#tableHeat').bootstrapTable('refresh', {silent: true});
+            if (counter >= 45 * 60/refreshEveryNumSecs)
+            {
+                clearInterval(looper);
+                $('.table tr th').text('Please Reload Page')
+            }
+
+        }, refreshEveryNumSecs * 1000);
+    })
 
 
   </script>

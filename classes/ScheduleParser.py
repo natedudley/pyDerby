@@ -97,3 +97,33 @@ class ScheduleParser:
 
         res = {'data': data, 'columns': columns}
         return res
+
+    def CurrentHeat(self):
+        useCols = ['heat#', 'car1#', 'car2#', 'car3#', 'car4#']
+        columns = []
+        data = []
+        posCount = 0
+        indexesToFields = {}
+        for h in range(0, len(self.raceSchedule.header)):
+            if self.raceSchedule.header[h] in useCols:
+                title = self.raceSchedule.header[h]
+                field = title
+                if field == 'pos':
+                    posCount += 1
+                    field += str(posCount)
+                columns.append({'field': field, 'title': title})
+                indexesToFields[h] = field
+
+        for r in self.raceSchedule.rows:
+            d = {}
+            for i in indexesToFields:
+                if not 'car' in indexesToFields[i]:
+                    d[indexesToFields[i]] = r[i]
+                else:
+                    d[indexesToFields[i]] = '' + str(r[i]) + ''
+            if len(r[self.raceSchedule.headerToIndex['timestamp']]) < 3:
+                data.append(d)
+                break
+
+        res = {'data': data, 'columns': columns}
+        return res

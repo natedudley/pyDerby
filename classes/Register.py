@@ -42,6 +42,13 @@ class Register:
             return self.regData[self.carNumDict[carNum]]
         return {}
 
+    def getParticipantDisplayNameFromCar(self, carNumStr):
+        part = self.getParticipantFromCar(carNumStr)
+        if len(part) > 0:
+            return part['displayName']
+
+        return ''
+
     def addParticipant(self, args):
         res = []
         participant = {}
