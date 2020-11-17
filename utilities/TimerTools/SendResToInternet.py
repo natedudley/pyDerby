@@ -34,8 +34,8 @@ while True:
         if moddate - lastUpdate > 1:
             sched = ScheduleParser.ScheduleParser(schedFilePath)
             registration = Register.Register(regFilePath)
-            scheduleRes = sched.getBasicSchedule()
-            carsRes = sched.getBasicCars()
+            scheduleRes = sched.getBasicSchedule(True)
+            carsRes = sched.getBasicCars(True)
             addNames(carsRes)
             addSortingOption(carsRes)
             #carsRes['data'] = sorted(carsRes['data'], key=lambda i: i['total'])

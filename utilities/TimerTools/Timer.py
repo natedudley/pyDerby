@@ -4,13 +4,15 @@ import serial
 from tkinter import *
 from tkinter.ttk import *
 from classes import logger
+import re
 
 class timerGUI:
     def __init__(self, root):
         self.log = logger.logger('../../csv/raceSchedule.csv')
         self.file = open('../../backup/serialPortLog.txt', 'a+')
-        # you need to update the line below with your device
-        self.s = serial.Serial('/dev/cu.usbmodem14101')
+        # you need to update the line below with your device, I use the Arduino serial monitor to figure out the name
+        #self.s = serial.Serial('/dev/cu.usbmodem14101')
+        self.s = serial.Serial('/dev/cu.usbserial-1420')
         self.s.timeout = 0
         print(self.s.name)
         self.timesQ = []
@@ -90,27 +92,30 @@ class timerGUI:
             self.approveCallBack()
 
     def update(self):
-        l = str(self.s.readline().decode())
-        times = [0] * 4
-        if len(l) > 0:
-            for u in l.split(' '):
-                if '=' in u:
-                    vals = u.split('=')
-                    if 'A' in vals[0]:
-                        times[0] = float(vals[1])
-                    if 'B' in vals[0]:
-                        times[1] = float(vals[1])
-                    if 'C' in vals[0]:
-                        times[2] = float(vals[1])
-                    if 'D' in vals[0]:
-                        times[3] = float(vals[1])
-                        # if the timer is turned around, times need to be reversed here.
-                        self.timesQ.append(times)
-                        print('queue depth: ' + str(len(self.timesQ)) + ' with ' + str(times[0]) + ', ' + str(times[1]) + ', ' + str(times[2]) + ', ' + str(times[3]))
-
-
+        try:
+            l = str(self.s.readline().decode())
             self.file.write(l)
             self.file.flush()
+
+            times = [0] * 4
+            if len(l) > 0:
+                for u in l.split(' '):
+                    if '=' in u:
+                        vals = u.split('=')
+                        val = float(re.sub("[^\d.]", "", vals[1]))
+                        if 'A' in vals[0]:
+                            times[0] = val
+                        if 'B' in vals[0]:
+                            times[1] = val
+                        if 'C' in vals[0]:
+                            times[2] = val
+                        if 'D' in vals[0]:
+                            times[3] = val
+                            # if the timer is turned around, times need to be reversed here.
+                            self.timesQ.append(times)
+                            print('queue depth: ' + str(len(self.timesQ)) + ' with ' + str(times[0]) + ', ' + str(times[1]) + ', ' + str(times[2]) + ', ' + str(times[3]))
+        except Exception as e:
+            print(e)
 
         if len(self.timesQ) > 0:
             ready = True

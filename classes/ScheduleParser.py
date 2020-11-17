@@ -43,7 +43,7 @@ class ScheduleParser:
 
         return cars
 
-    def getBasicSchedule(self):
+    def getBasicSchedule(self, showTime = False):
         useCols = ['heat#', 'car1#', 'pos', 'car2#', 'pos', 'car3#', 'pos', 'car4#', 'pos']
         columns = []
         data = []
@@ -63,17 +63,20 @@ class ScheduleParser:
         for r in self.raceSchedule.rows:
             d = {}
             for i in indexesToFields:
-                if not 'car' in indexesToFields[i]:
-                    d[indexesToFields[i]] = r[i]
-                else:
+                if 'car' in indexesToFields:
                     d[indexesToFields[i]] = '<b>' + str(r[i]) + '</b>'
+                elif showTime and 'pos' in indexesToFields[i] and len(r[i+1]) > 2:
+                    d[indexesToFields[i]] = r[i] + ' (' + r[i+1] + ')'
+                else:
+                    d[indexesToFields[i]] = r[i]
+
 
             data.append(d)
 
         res = {'data':data, 'columns':columns}
         return res
 
-    def getBasicCars(self):
+    def getBasicCars(self, showTime = False):
         cars = self.computeCarStats()
         useCols = ['car', 'pos', 'pos', 'pos', 'pos', 'total']
         columns = []
@@ -92,7 +95,11 @@ class ScheduleParser:
             for c in columns:
                 field = c['field']
                 if field in carRes:
-                    d[field] = carRes[field]
+                    timeField = field.replace('pos', 'time')
+                    if 'pos' in field and timeField in carRes and len(carRes[timeField]) > 2:
+                        d[field] = carRes[field] + ' (' + carRes[timeField] + ')'
+                    else:
+                        d[field] = carRes[field]
             data.append(d)
 
         res = {'data': data, 'columns': columns}
