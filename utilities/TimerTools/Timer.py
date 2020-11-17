@@ -5,6 +5,7 @@ from tkinter import *
 from tkinter.ttk import *
 from classes import logger
 import re
+import datetime
 
 class timerGUI:
     def __init__(self, root):
@@ -16,7 +17,7 @@ class timerGUI:
         self.s.timeout = 0
         print(self.s.name)
         self.timesQ = []
-        self.countDownTime = 0
+        self.countDownTime = datetime.datetime.now()
         self.root = root
         root.title("Timer Control")
         self.textBoxes = []
@@ -45,8 +46,8 @@ class timerGUI:
 
         times = []
         for t in range(0, len(self.textBoxes)):
-            self.textBoxes[t].delete(0, 'end')
             times.append(float(self.textBoxes[t].get()))
+            self.textBoxes[t].delete(0, 'end')
 
         print('rejected: ' + str(times[0]) + ', ' + str(times[1]) + ', ' + str(times[2]) + ', ' + str(times[3]))
 
@@ -77,18 +78,20 @@ class timerGUI:
             print('did not log: ' + str(times[0]) + ', ' + str(times[1]) + ', ' + str(times[2]) + ', ' + str(times[3]))
 
     def countDown(self):
-        if not self.hold:
-            if self.countDownTime > 0:
-                self.countDownLabel['text'] = str(self.countDownTime)
+        totalSeconds = (self.countDownTime - datetime.datetime.now()).total_seconds()
+        if self.hold:
+            self.countDownLabel['text'] = 'hold'
+            self.countDownTime = datetime.datetime.now()
+        else:
+            if totalSeconds > 0:
+                self.countDownLabel['text'] = str(round(totalSeconds))
             else:
                 self.countDownLabel['text'] = '-'
 
-            self.countDownTime += -1
 
-        if self.countDownTime > -3:
+        if totalSeconds > -3:
             window.after(1000, self.countDown)
         else:
-            self.countDownTime = 15
             self.approveCallBack()
 
     def update(self):
@@ -125,11 +128,12 @@ class timerGUI:
 
             if ready:
                 self.hold = False
-                self.countDownTime = 15
+                self.countDownTime = datetime.datetime.now() + datetime.timedelta(seconds=15)
+                print('starting countdown')
                 self.countDown()
                 self.approveButton['state'] = 'normal'
                 self.holdButton['state'] = 'normal'
-                times = self.timesQ.pop()
+                times = self.timesQ.pop(0)
                 for t in range(0, len(times)):
                     self.textBoxes[t].delete(0, 'end')
                     self.textBoxes[t].insert(INSERT, str(times[t]))
