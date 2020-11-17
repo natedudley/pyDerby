@@ -43,20 +43,6 @@ intact. #}
     </table>
 </div>
 
-<h1>Cars</h1>
-<div class="container">
-    <table class="table table-striped" id="tableCars"
-           data-toggle="true"
-           data-toolbar="#toolbar"
-           data-search="false"
-           data-show-columns="false"
-           data-pagination="false"
-           data-sortable="false"
-           data-striped="true"
-           data-url={{ url_for('get_cars') }}>
-    </table>
-</div>
-
 <script type='text/javascript'>
   $(function() {
     $('#tableSchedule').bootstrapTable({
@@ -66,12 +52,6 @@ intact. #}
   $(function() {
     $('#tableHeat').bootstrapTable({
           columns: {{columnsCurrentHeat|tojson}},
-  });
-  })
-
-  $(function() {
-    $('#tableCars').bootstrapTable({
-          columns: {{columnsCars|tojson}},
   });
   })
 

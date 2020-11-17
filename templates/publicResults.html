@@ -1,0 +1,59 @@
+{# This simple template derives from ``base.html``. See ``base.html`` for
+more information about template inheritance. #}
+{%- extends "publicBase.html" %}
+
+{% set active_page = "results" %}
+
+{# Loads some of the macros included with Flask-Bootstrap. We are using the
+utils module here to automatically render Flask's flashed messages in a
+bootstrap friendly manner #}
+{% import "bootstrap/utils.html" as utils %}
+
+
+{# Inside the ``content`` is where you should place most of your own stuff.
+This will keep scripts at the page end and a navbar you add on later
+intact. #}
+{% block content %}
+
+<h1>Results</h1>
+<div class="container">
+    <table class="table table-striped" id="tableCars"
+           data-toggle="false"
+           data-toolbar="#toolbar"
+           data-search="true"
+           data-show-columns="false"
+           data-pagination="false"
+           data-striped="true"
+           data-url={{ url_for('get_cars') }}>
+    </table>
+</div>
+
+<script type='text/javascript'>
+  $(function() {
+    $('#tableCars').bootstrapTable({
+          columns: {{columnsCars|tojson}},
+  });
+  })
+
+    $(function(){
+
+        var counter = 0;
+        var refreshEveryNumSecs = 60
+        var looper = setInterval(function(){
+            counter++;
+            console.log("Counter is: " + counter);
+            $('#tableCars').bootstrapTable('refresh', {silent: true});
+            if (counter >= 3 * 60 * 60/refreshEveryNumSecs)
+            {
+                clearInterval(looper);
+                $('.table tr th').text('Please Reload Page')
+            }
+
+        }, refreshEveryNumSecs * 1000);
+    })
+
+
+  </script>
+
+
+{%- endblock %}

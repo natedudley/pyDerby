@@ -35,19 +35,25 @@ bootstrap = Bootstrap(app)
 def root():
     doc = datastore_client.collection('Derby').document('Schedule')
     scheduleRes = doc.get().to_dict()
-    doc = datastore_client.collection('Derby').document('Cars')
-    carsRes = doc.get().to_dict()
     doc = datastore_client.collection('Derby').document('CurrentHeat')
     currentHeatRes = doc.get().to_dict()
 
     return render_template('public.html',
                            columnsSchedule=scheduleRes['columns'],
-                           columnsCars=carsRes['columns'],
                            columnsCurrentHeat=currentHeatRes['columns'],
                            )
 
-@app.route('/gallery')
-def gallery():
+@app.route('/results')
+def results():
+    doc = datastore_client.collection('Derby').document('Cars')
+    carsRes = doc.get().to_dict()
+
+    return render_template('publicResults.html',
+                           columnsCars=carsRes['columns'],
+                           )
+
+@app.route('/sc')
+def sc():
     gallery = []
     basePath = 'static/gallery/'
     dirs = os.listdir(basePath)
@@ -67,7 +73,7 @@ def gallery():
             carInfo = {'carNum': carNum, 'images': images, 'youTubeId': youTubeId}
             gallery.append(carInfo)
 
-    return render_template('gallery.html', gallery=gallery)
+    return render_template('sc.html', gallery=gallery)
 
 @app.route('/api/schedule', methods=['GET'])
 def get_schedule():

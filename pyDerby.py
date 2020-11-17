@@ -1,5 +1,5 @@
 import flask
-from flask import Flask, render_template
+from flask import Flask, render_template, jsonify
 from flask_bootstrap import Bootstrap
 import os
 from flask import send_from_directory
@@ -64,30 +64,93 @@ def register():
                            groups=groups,
                            title='Welcome to the Pinewood Derby!')
 
-@app.route('/cars')
-def cars():
-    data = []
-    # other column settings -> http://bootstrap-table.wenzhixin.net.cn/documentation/#column-options
-
+@app.route('/api/schedule', methods=['GET'])
+def get_schedule():
     raceSchedule = CsvReader.CSVReader('csv/raceSchedule.csv')
 
-    columns = [getTableColSettingsWithCookie('cars', 'car#', 'car#'),
-               getTableColSettingsWithCookie('cars', 'name', 'name'),
-               getTableColSettingsWithCookie('cars', 'den', 'den'),
-               getTableColSettingsWithCookie('cars', 'min', 'min'),
-               getTableColSettingsWithCookie('cars', 'avg', 'avg'),
-               getTableColSettingsWithCookie('cars', 'total', 'total'),
-               getTableColSettingsWithCookie('cars', 'stdev', 'stdev')]
+    timeIndex = []
+    fastestTimes = []
 
-    count = 0
-    for h in raceSchedule.getHeader():
-        if 'car' in h:
-            count = count + 1
-            columns.append(getTableColSettingsWithCookie('cars', 'heat#' + str(count), 'heat#'))
-            columns.append(getTableColSettingsWithCookie('cars', 'pos' + str(count), 'pos'))
-            columns.append(getTableColSettingsWithCookie('cars', 'time' + str(count), 'time'))
+    i = 0
+    for col in raceSchedule.getHeader():
+        if 'time' in col and not 'timestamp' in col:
+            timeIndex.append(i)
+            fastestTimes.append(999999)
+        i += 1
+
+    for heat in raceSchedule.getRows():
+        for i in range(len(timeIndex)):
+            try:
+                fastestTimes[i] = min(fastestTimes[i], float(heat[timeIndex[i]]))
+            except:
+                pass
+
+    data = []
+    columns = []
+
+    colCount = {}
+    for col in raceSchedule.getHeader():
+
+        if 'car' in col:
+            if not 'name' in colCount:
+                colCount['name'] = 0
+            else:
+                colCount['name'] += 1
+
+            columns.append(getTableColSettingsWithCookie('index', str(colCount['name'] + 1),
+                                                         '<b>' + str(colCount['name'] + 1) + '</b>'))
+            columns.append(getTableColSettingsWithCookie('index', 'name' + str(colCount['name']), 'name'))
+            columns.append(getTableColSettingsWithCookie('index', 'result' + str(colCount['name']), 'result'))
+
+        if not col in colCount:
+            colCount[col] = 0
+        else:
+            colCount[col] += 1
+        columns.append(getTableColSettingsWithCookie('index', col + str(colCount[col]), col))
+
+    for heat in raceSchedule.getRows():
+        heatInfo = {}
+        colCount = {}
+        curLane = 0
+        curPos = ""
+        for i in range(len(heat)):
+            col = raceSchedule.getColumnName(i)
+            if not col in colCount:
+                colCount[col] = 0
+            else:
+                colCount[col] += 1
+
+            heatInfo.update({col + str(colCount[col]): heat[i]})
+            if 'car' in col:
+                if not 'name' in colCount:
+                    colCount['name'] = 0
+                else:
+                    colCount['name'] += 1
+                curLane = colCount['name'] + 1
+                heatInfo[str(curLane)] = '<b>' + str(curLane) + '</b>'
+
+                participant = registration.getParticipantFromCar(heat[i])
+                if len(participant) > 0:
+                    heatInfo['name' + str(colCount['name'])] = participant['name'] + ' (' + participant['carNum'] + ')'
+                else:
+                    heatInfo['name' + str(colCount['name'])] = '?' + ' (' + heat[i] + ')'
+            if 'pos' in col:
+                curPos = heat[i]
+            if 'time' == col:
+                if '-' in curPos or curPos == ' ' or curPos == '':
+                    result = '-'
+                else:
+                    result = curPos + ' <i>(' + heat[i] + ')</i>'
+                heatInfo['result' + str(curLane - 1)] = result
+
+        data.append(heatInfo)
+    return jsonify(data)
 
 
+@app.route('/api/cars', methods=['GET'])
+def get_cars():
+    raceSchedule = CsvReader.CSVReader('csv/raceSchedule.csv')
+    data = []
     cars = {}
     carTimes = {}
     for heat in raceSchedule.getRows():
@@ -131,8 +194,33 @@ def cars():
 
         data.append(row)
 
+    return jsonify(data)
+
+@app.route('/cars')
+def cars():
+    data = []
+
+    # other column settings -> http://bootstrap-table.wenzhixin.net.cn/documentation/#column-options
+
+    raceSchedule = CsvReader.CSVReader('csv/raceSchedule.csv')
+
+    columns = [getTableColSettingsWithCookie('cars', 'car#', 'car#'),
+               getTableColSettingsWithCookie('cars', 'name', 'name'),
+               getTableColSettingsWithCookie('cars', 'den', 'den'),
+               getTableColSettingsWithCookie('cars', 'min', 'min'),
+               getTableColSettingsWithCookie('cars', 'avg', 'avg'),
+               getTableColSettingsWithCookie('cars', 'total', 'total'),
+               getTableColSettingsWithCookie('cars', 'stdev', 'stdev')]
+
+    count = 0
+    for h in raceSchedule.getHeader():
+        if 'car' in h:
+            count = count + 1
+            columns.append(getTableColSettingsWithCookie('cars', 'heat#' + str(count), 'heat#'))
+            columns.append(getTableColSettingsWithCookie('cars', 'pos' + str(count), 'pos'))
+            columns.append(getTableColSettingsWithCookie('cars', 'time' + str(count), 'time'))
+
     return render_template("cars.html",
-      data=data,
       columns=columns,
       title='Welcome to the Pinewood Derby!')
 
@@ -140,24 +228,25 @@ def cars():
 def homepage():
     raceSchedule = CsvReader.CSVReader('csv/raceSchedule.csv')
 
-    timeIndex = []
+    timeIndexes = []
     fastestTimes = []
-
-    i = 0
-    for col in raceSchedule.getHeader():
-        if 'time' in col and not 'timestamp' in col:
-            timeIndex.append(i)
+    for i in range(0, len(raceSchedule.getHeader())):
+        if 'time' in raceSchedule.getHeader()[i] and not 'timestamp' in raceSchedule.getHeader()[i]:
+            timeIndexes.append(i)
             fastestTimes.append(999999)
-        i += 1
 
     for heat in raceSchedule.getRows():
-        for i in range(len(timeIndex)):
+        for i in range(len(timeIndexes)):
             try:
-                fastestTimes[i] = min(fastestTimes[i], float(heat[timeIndex[i]]))
+                fastestTimes[i] = min(fastestTimes[i], float(heat[timeIndexes[i]]))
             except:
                 pass
 
-    data = []
+    fastestTimesStr = 'Fastest times: '
+    for f in range(len(fastestTimes)):
+        if fastestTimes[f] < 999:
+            fastestTimesStr = fastestTimesStr + ' Lane ' + str(f+1) + ': ' + "{:.3f}".format(fastestTimes[f])
+
     columns = []
 
     colCount = {}
@@ -169,7 +258,8 @@ def homepage():
             else:
                 colCount['name'] += 1
 
-            columns.append(getTableColSettingsWithCookie('index', str(colCount['name']+1), '<b>' + str(colCount['name']+1) + '</b>'))
+            columns.append(getTableColSettingsWithCookie('index', str(colCount['name'] + 1),
+                                                         '<b>' + str(colCount['name'] + 1) + '</b>'))
             columns.append(getTableColSettingsWithCookie('index', 'name' + str(colCount['name']), 'name'))
             columns.append(getTableColSettingsWithCookie('index', 'result' + str(colCount['name']), 'result'))
 
@@ -179,51 +269,8 @@ def homepage():
             colCount[col] += 1
         columns.append(getTableColSettingsWithCookie('index', col + str(colCount[col]), col))
 
-    for heat in raceSchedule.getRows():
-        heatInfo = {}
-        colCount = {}
-        curLane = 0
-        curPos = ""
-        for i in range(len(heat)):
-            col = raceSchedule.getColumnName(i)
-            if not col in colCount:
-                colCount[col] = 0
-            else:
-                colCount[col] += 1
-
-            heatInfo.update({col+str(colCount[col]): heat[i]})
-            if 'car' in col:
-                if not 'name' in colCount:
-                    colCount['name'] = 0
-                else:
-                    colCount['name'] += 1
-                curLane = colCount['name'] + 1
-                heatInfo[str(curLane)] = '<b>' + str(curLane) + '</b>'
-
-                participant = registration.getParticipantFromCar(heat[i])
-                if len(participant) > 0:
-                    heatInfo['name'+str(colCount['name'])] = participant['name'] + ' (' + participant['carNum'] + ')'
-                else:
-                    heatInfo['name' + str(colCount['name'])] = '?' + ' (' + heat[i] + ')'
-            if 'pos' in col:
-                curPos = heat[i]
-            if 'time' == col:
-                if '-' in curPos or curPos == ' ' or  curPos == '':
-                    result = '-'
-                else:
-                    result =   curPos + ' <i>(' +  heat[i] +')</i>'
-                heatInfo['result' + str(curLane - 1)] = result
-
-        data.append(heatInfo)
-
-    fastestTimesStr = 'Fastest times: '
-    for f in range(len(fastestTimes)):
-        if fastestTimes[f] < 999:
-            fastestTimesStr = fastestTimesStr + ' Lane ' + str(f+1) + ': ' + "{:.3f}".format(fastestTimes[f])
-
     return render_template("index.html",
                            title = "Pinewood Derby",
-                           data=data,
                            columns=columns,
                            fastestTime=fastestTimesStr
                            )
@@ -253,7 +300,6 @@ def getTableColSettingsWithCookie(pageId, field, title):
         res['visible'] = False
     res.update()
     return res
-    #columns = [{'field': 'car#', 'title': 'car#', 'sortable': True, 'visible': carnumVis},
 
 
 if __name__ == "__main__":

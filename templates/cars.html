@@ -17,7 +17,8 @@
             data-search="true"
             data-show-columns="true"
             data-pagination="false"
-            data-striped="true">
+            data-striped="true"
+            data-url={{ url_for('get_cars') }}>
     </table>
   </div>
 </div>
@@ -25,7 +26,6 @@
 <script type='text/javascript'>
   $(function() {
     $('#table').bootstrapTable({
-          data: {{data|tojson}},
           columns: {{columns|tojson}},
 
           sortName: $.cookie('carsColSortName'),
@@ -40,6 +40,22 @@
           }
   });
   })
+  $(function(){
+
+        var counter = 0;
+        var refreshEveryNumSecs = 5
+        var looper = setInterval(function(){
+            counter++;
+            console.log("Counter is: " + counter);
+            $('#table').bootstrapTable('refresh', {silent: true});
+            if (counter >= 3 * 60 * 60/refreshEveryNumSecs)
+            {
+                clearInterval(looper);
+                $('.table tr th').text('Please Reload Page')
+            }
+
+        }, refreshEveryNumSecs * 1000);
+    })
 
   </script>
 {%- endblock %}

@@ -2,8 +2,8 @@ from datetime import datetime
 from pathlib import Path
 
 class logger:
-    def __init__(self):
-        a = 1
+    def __init__(self, raceSchedulePath):
+        self.raceSchedulePath = raceSchedulePath
 
     #for the input of list of times, returns list of 1st, 2nd, 3rd, etc. Index of list is the lane number
     def calcPlacement(self, times):
@@ -19,7 +19,7 @@ class logger:
     #takes the input of times from the timer and matches the times to the race Schedule, searchin for races that are not complete
     def logRace(self, times):
         places = self.calcPlacement(times)
-        file = open('./csv/raceSchedule.csv', 'r')
+        file = open(self.raceSchedulePath, 'r')
         races = file.readlines()
         file.close()
 
@@ -37,7 +37,7 @@ class logger:
             else:
                 newRes.append(race)
 
-        file = open('./csv/raceSchedule.csv', 'w+')
+        file = open(self.raceSchedulePath, 'w+')
         file.writelines(newRes)
         file.close()
 

@@ -8,11 +8,6 @@ utils module here to automatically render Flask's flashed messages in a
 bootstrap friendly manner #}
 {% import "bootstrap/utils.html" as utils %}
 
-{%- block metas %}
-<meta http-equiv="refresh" content="10">
-{%- endblock metas %}
-
-
 {# Inside the ``content`` is where you should place most of your own stuff.
 This will keep scripts at the page end and a navbar you add on later
 intact. #}
@@ -45,20 +40,36 @@ intact. #}
            data-show-columns="true"
            data-pagination="false"
            data-sortable="false"
-           data-striped="true">
+           data-striped="true"
+            data-url={{ url_for('get_schedule') }}>
     </table>
 </div>
 
 <script type='text/javascript'>
   $(function() {
     $('#table').bootstrapTable({
-          data: {{data|tojson}},
           columns: {{columns|tojson}},
           onColumnSwitch: function (field, checked) {
             document.cookie = "indexColVis" + field + "=" + checked;
           }
   });
   })
+  $(function(){
+
+        var counter = 0;
+        var refreshEveryNumSecs = 5
+        var looper = setInterval(function(){
+            counter++;
+            console.log("Counter is: " + counter);
+            $('#table').bootstrapTable('refresh', {silent: true});
+            if (counter >= 3 * 60 * 60/refreshEveryNumSecs)
+            {
+                clearInterval(looper);
+                $('.table tr th').text('Please Reload Page')
+            }
+
+        }, refreshEveryNumSecs * 1000);
+    })
 
   </script>
 {%- endblock %}

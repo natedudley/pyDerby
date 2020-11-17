@@ -12,6 +12,19 @@ lastUpdate = 0
 
 datastore_client = firestore.Client()
 
+def addNames(res):
+    for row in res['data']:
+        for r in row:
+            if 'car' in r:
+                carNum = row[r]
+                name = registration.getParticipantDisplayNameFromCar(carNum)
+                info = name + ' (' + carNum + ')'
+                row[r] = info
+
+def addSortingOption(res):
+    for col in res['columns']:
+        col['sortable'] = True
+
 while True:
     if not os.path.exists(schedFilePath):
         print('could not find: ' + schedFilePath + ' current working director: ' + os.getcwd())
@@ -23,6 +36,9 @@ while True:
             registration = Register.Register(regFilePath)
             scheduleRes = sched.getBasicSchedule()
             carsRes = sched.getBasicCars()
+            addNames(carsRes)
+            addSortingOption(carsRes)
+            #carsRes['data'] = sorted(carsRes['data'], key=lambda i: i['total'])
 
             curHeatRes = sched.CurrentHeat()
 
@@ -32,12 +48,7 @@ while True:
             key.set(carsRes)
 
             if len(curHeatRes['data']) > 0:
-                for c in curHeatRes['data'][0]:
-                    if 'car' in c.lower():
-                        carNum = curHeatRes['data'][0][c]
-                        name = registration.getParticipantDisplayNameFromCar(carNum)
-                        info = name + ' (' + carNum + ')'
-                        curHeatRes['data'][0][c] = info
+                addNames(curHeatRes)
                 key = datastore_client.collection('Derby').document('CurrentHeat')
                 key.set(curHeatRes)
 
