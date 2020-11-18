@@ -12,8 +12,10 @@ class timerGUI:
         self.log = logger.logger('../../csv/raceSchedule.csv')
         self.file = open('../../backup/serialPortLog.txt', 'a+')
         # you need to update the line below with your device, I use the Arduino serial monitor to figure out the name
-        #self.s = serial.Serial('/dev/cu.usbmodem14101')
-        self.s = serial.Serial('/dev/cu.usbserial-1420')
+        try:
+            self.s = serial.Serial('/dev/cu.usbmodem14101')
+        except:
+            self.s = serial.Serial('/dev/cu.usbserial-1420')
         self.s.timeout = 0
         print(self.s.name)
         self.timesQ = []

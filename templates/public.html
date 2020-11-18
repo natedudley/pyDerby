@@ -43,6 +43,14 @@ intact. #}
     </table>
 </div>
 
+<div class="container">
+    <div style="margin-top:50px;">
+        <div class="text-right" >
+            <button type="button" class="btn btn-secondary" onclick="fasterRefresh()">Fast Refresh</button>
+        </div>
+    </div>
+</div>
+
 <script type='text/javascript'>
   $(function() {
     $('#tableSchedule').bootstrapTable({
@@ -55,25 +63,33 @@ intact. #}
   });
   })
 
-    $(function(){
+  $(function() {
+    updateTables();
+  })
 
-        var counter = 0;
-        var refreshEveryNumSecs = 20
-        var looper = setInterval(function(){
-            counter++;
-            console.log("Counter is: " + counter);
-            $('#tableSchedule').bootstrapTable('refresh', {silent: true});
-            $('#tableCars').bootstrapTable('refresh', {silent: true});
-            $('#tableHeat').bootstrapTable('refresh', {silent: true});
-            if (counter >= 45 * 60/refreshEveryNumSecs)
-            {
-                clearInterval(looper);
-                $('.table tr th').text('Please Reload Page')
-            }
+  var refreshEveryNumSecs = 20;
+  var counter = 0;
 
-        }, refreshEveryNumSecs * 1000);
-    })
+  function fasterRefresh() {
+    refreshEveryNumSecs = 5;
+  }
 
+
+    function updateTables() {
+        counter++;
+        console.log("Counter is: " + counter + " refresh: " + refreshEveryNumSecs);
+        $('#tableSchedule').bootstrapTable('refresh', {silent: true});
+        $('#tableCars').bootstrapTable('refresh', {silent: true});
+        $('#tableHeat').bootstrapTable('refresh', {silent: true});
+        if (counter >= 45 * 60/refreshEveryNumSecs)
+        {
+            $('.table tr th').text('Reload Page');
+        }
+        else
+        {
+            setTimeout(updateTables, refreshEveryNumSecs * 1000);
+        }
+    }
 
   </script>
 
