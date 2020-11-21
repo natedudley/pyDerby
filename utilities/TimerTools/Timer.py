@@ -15,9 +15,14 @@ class timerGUI:
         try:
             self.s = serial.Serial('/dev/cu.usbmodem14101')
         except:
-            self.s = serial.Serial('/dev/cu.usbserial-1420')
-        self.s.timeout = 0
-        print(self.s.name)
+            try:
+                self.s = serial.Serial('/dev/cu.usbserial-1420')
+            except:
+                self.s = None
+                print("No serial device connected")
+        if not self.s == None:
+            self.s.timeout = 0
+            print(self.s.name)
         self.timesQ = []
         self.countDownTime = datetime.datetime.now()
         self.root = root
@@ -36,6 +41,8 @@ class timerGUI:
         self.holdButton.grid(column=1, row=4)
         self.approveButton = Button(root, text="Approve", state=DISABLED, command=self.approveCallBack)
         self.approveButton.grid(column=2, row=4)
+        if self.s == None:
+            self.approveButton['state'] = 'normal'
         self.countDownLabel = Label(root)
         self.countDownLabel.grid(column=3, row=4)
 
@@ -62,7 +69,8 @@ class timerGUI:
     def approveCallBack(self):
         self.hold = True
         self.rejectButton['state'] = 'disabled'
-        self.approveButton['state'] = 'disabled'
+        if not self.s == None:
+            self.approveButton['state'] = 'disabled'
         self.holdButton['state'] = 'disabled'
         times = []
         for t in range(0, len(self.textBoxes)):
@@ -97,6 +105,8 @@ class timerGUI:
             self.approveCallBack()
 
     def update(self):
+        if self.s == None:
+            return
         try:
             l = str(self.s.readline().decode())
             self.file.write(l)

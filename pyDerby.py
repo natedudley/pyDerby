@@ -8,12 +8,14 @@ import time
 
 from classes import CsvReader
 from classes import Register
+from classes import ScheduleParser
 
 
 app = Flask(__name__)
 
 #registation is done here. There is a lock on registration.csv to make sure there are not multiple writes at the same time
 registration = Register.Register('csv/registration.csv')
+schedFilePath = './csv/raceSchedule.csv'
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -149,49 +151,18 @@ def get_schedule():
 
 @app.route('/api/cars', methods=['GET'])
 def get_cars():
-    raceSchedule = CsvReader.CSVReader('csv/raceSchedule.csv')
-    data = []
-    cars = {}
-    carTimes = {}
-    for heat in raceSchedule.getRows():
-        curCar = 0
-        count = 0
-        curHeat = 0;
-        for i in range(len(heat)):
-            h = heat[i]
-            if 'car' in raceSchedule.getColumnName(i):
-                count = count + 1
-                curCar = h
-                if not h in cars:
-                    cars[h] = {}
-                cars[curCar].update({'heat#' + str(count): curHeat})
-            if 'pos' in raceSchedule.getColumnName(i):
-                cars[curCar].update({'pos' + str(count): h})
-            if raceSchedule.getColumnName(i) == 'time':
-                try:
-                    cars[curCar].update({'time' + str(count): h})
-                    if curCar in carTimes:
-                        carTimes[curCar].append(float(h))
-                    else:
-                        carTimes[curCar] = [float(h)]
-                except ValueError:
-                    pass
-            if 'heat' in raceSchedule.getColumnName(i):
-                curHeat = h
 
-    for car in cars:
+    sched = ScheduleParser.ScheduleParser(schedFilePath)
+    carsRes = sched.computeCarStats()
+
+    data = []
+    for car in carsRes:
         row = {'car#': car}
         participant = registration.getParticipantFromCar(car)
         if len(participant) > 0:
             row['name'] = participant['name']
             row['den'] = participant['den']
-        row.update(cars[car])
-        if car in carTimes:
-            row['avg'] = "{:.3f}".format(statistics.mean(carTimes[car]))
-            row['stdev'] = "{:.3f}".format(statistics.pstdev(carTimes[car]))
-            row['total'] = "{:.3f}".format(sum(carTimes[car]))
-            row['min'] = "{:.3f}".format(min(carTimes[car]))
-
+        row.update(carsRes[car])
         data.append(row)
 
     return jsonify(data)
@@ -209,7 +180,8 @@ def cars():
                getTableColSettingsWithCookie('cars', 'den', 'den'),
                getTableColSettingsWithCookie('cars', 'min', 'min'),
                getTableColSettingsWithCookie('cars', 'avg', 'avg'),
-               getTableColSettingsWithCookie('cars', 'total', 'total'),
+               getTableColSettingsWithCookie('cars', 'totalPoints', 'totalPoints'),
+               getTableColSettingsWithCookie('cars', 'totalTime', 'totalTime'),
                getTableColSettingsWithCookie('cars', 'stdev', 'stdev')]
 
     count = 0

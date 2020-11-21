@@ -8,6 +8,7 @@ class ScheduleParser:
     def computeCarStats(self):
         cars = {}
         carTimes = {}
+        carPoints = {}
         for heat in self.raceSchedule.getRows():
             curCar = 0
             count = 0
@@ -21,7 +22,14 @@ class ScheduleParser:
                         cars[h] = {}
                     cars[curCar].update({'heat#' + str(count): curHeat})
                 if 'pos' in self.raceSchedule.getColumnName(i):
-                    cars[curCar].update({'pos' + str(count): h})
+                    try:
+                        cars[curCar].update({'pos' + str(count): h})
+                        if curCar in carPoints:
+                            carPoints[curCar].append(float(h))
+                        else:
+                            carPoints[curCar] = [float(h)]
+                    except ValueError:
+                        pass
                 if self.raceSchedule.getColumnName(i) == 'time':
                     try:
                         cars[curCar].update({'time' + str(count): h})
@@ -38,7 +46,8 @@ class ScheduleParser:
             if car in carTimes:
                 cars[car]['avg'] = "{:.3f}".format(statistics.mean(carTimes[car]))
                 cars[car]['stdev'] = "{:.3f}".format(statistics.pstdev(carTimes[car]))
-                cars[car]['total'] = "{:.3f}".format(sum(carTimes[car]))
+                cars[car]['totalTime'] = "{:.3f}".format(sum(carTimes[car]))
+                cars[car]['totalPoints'] = "{:.1f}".format(sum(carPoints[car]))
                 cars[car]['min'] = "{:.3f}".format(min(carTimes[car]))
 
         return cars
@@ -78,7 +87,7 @@ class ScheduleParser:
 
     def getBasicCars(self, showTime = False):
         cars = self.computeCarStats()
-        useCols = ['car', 'pos', 'pos', 'pos', 'pos', 'total']
+        useCols = ['car', 'pos', 'pos', 'pos', 'pos', 'totalPoints', 'totalTime']
         columns = []
         data = []
         posCount = 0
