@@ -3,3 +3,6 @@
 /backup/
 /sandbox/
 *.pickle
+*.DS_Store*
+/static/gallery
+/static/img

@@ -41,7 +41,7 @@ class SampleApp(tk.Tk):
         self.resizedImageTitles = []
 
         for f in ld:
-            if os.path.isfile(self.path + '/' + f)  and ('.jpg' in f.lower() or '.png' in f.lower()):
+            if os.path.isfile(self.path + '/' + f)  and ('.jpeg' in f.lower() or '.jpg' in f.lower() or '.png' in f.lower()):
                 img = Image.open(self.path+f)
                 img = ImageOps.exif_transpose(img)
                 (w, h) = img.size
@@ -121,7 +121,7 @@ class SampleApp(tk.Tk):
         ld = os.listdir(self.destPath + '/' + outputName)
         count = 1
         for file in ld:
-            if '.jpg' in file.lower() or 'png' in file.lower():
+            if '.jpeg' in file.lower() or '.jpg' in file.lower() or 'png' in file.lower():
                 count += 1
 
         self.resizedImages[self.currentIndex].save(self.destPath + '/' + outputName +'/image_' + outputName + '-' + str(count) + '.png')

@@ -20,6 +20,8 @@ backup/
 sandbox/
 pyDerby.py
 *.pickle
+*.mp4
+Icon?
 
 # Python pycache:
 __pycache__/
