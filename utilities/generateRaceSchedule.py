@@ -1,19 +1,27 @@
 import random
-import json
 from collections import deque
-from classes import CsvReader
 from os import path
+
+from classes import CsvReader
+
+from tkinter import *
+from tkinter.ttk import *
+from classes import logger
+
+
 
 class RaceSchedule:
 
-    def __init__(self, fileName, numLanes=4):
+    def __init__(self, scheduleFileName, registrationFileName, numLanes=4):
 
         self.numLanes = numLanes
         self.numCars = 40
 
-        self.fileName = fileName
+        self.fileName = scheduleFileName
         if path.exists(self.fileName):
             self.prevSched = CsvReader.CSVReader(self.fileName)
+
+        self.reg = CsvReader.CSVReader(registrationFileName)
 
     #returns the lane with the least number of cars
     def shortestLane(self):
@@ -226,63 +234,31 @@ class RaceSchedule:
                 listA.remove(r)
                 listB.remove(r)
 
-    def byDenOld(self, denName, updateExisting=False):
-        denName = denName.lower().strip()
-
-        reg = CsvReader.CSVReader('../csv/registration.csv')
-
-        self.carsInRace = []
-        for r in reg.rows:
-            if denName == r[reg.headerToIndex['den']].lower().strip() and r[reg.headerToIndex['checkedIn']].lower() == 'yes':
-                carNum = int(r[reg.headerToIndex['carNum']])
-                self.carsInRace.append((carNum))
-
-        self.numCars = len(self.carsInRace)
-
-        if self.numCars < 1:
-            print("no cars for: " + denName)
-            return
-
-        found = False
-        while not found:
-            print('placing cars:')
-            usedCars = self.initLanes(updateExisting)
-
-            carsWaiting = deque()
-            carsCopy = self.carsInRace.copy()
-            self.removeFromList(usedCars, carsCopy)
-            carsWaiting.append(deque(carsCopy))
-            for i in range(1, self.numLanes):
-                carsCopy = self.carsInRace.copy()
-                self.removeFromList(usedCars, carsCopy)
-                carsWaiting.append(deque(random.sample(carsCopy, len(carsCopy))))
-
-            found = self.putWaitingCarsInLanes(carsWaiting)
-
-        print('found spots')
-        self.didNotCompeteDirectly()
-        self.writeSchedule()
-
     def byDen(self, denName, updateExisting=False):
         denName = denName.lower().strip()
 
-        reg = CsvReader.CSVReader('../csv/registration.csv')
-
         self.carsInRace = []
-        for r in reg.rows:
-            if denName == r[reg.headerToIndex['den']].lower().strip() and r[reg.headerToIndex['checkedIn']].lower() == 'yes':
-                carNum = int(r[reg.headerToIndex['carNum']])
+        for r in self.reg.rows:
+            if denName == r[self.reg.headerToIndex['den']].lower().strip() and r[self.reg.headerToIndex['checkedIn']].lower() == 'yes':
+                carNum = int(r[self.reg.headerToIndex['carNum']])
                 self.carsInRace.append((carNum))
 
         self.numCars = len(self.carsInRace)
+        self.processCarList(updateExisting)
 
-        if self.numCars < 3:
-            print("need at least 3 cars for: " + denName)
-            return
-
+    def processCarList(self, updateExisting=False):
         if self.numCars == 3:
             self.numCars += 1
             self.carsInRace.append(0)
+
+        if self.numCars < 3:
+            a = self.carsInRace[0]
+            b = 0
+            if self.numCars > 1:
+                b = self.carsInRace[1]
+            self.lanes = [[a,0,0,b],[b,a,0,0],[0,b,a,0],[0,0,b,a]]
+            self.writeSchedule(updateExisting)
+            return
 
         found = False
         self.finalLanes = None
@@ -334,12 +310,90 @@ class RaceSchedule:
 
         self.writeSchedule(updateExisting)
 
-if __name__ == "__main__":
-    numLanes = 4
-    rs = RaceSchedule('../csv/raceSchedule.csv', numLanes)
-    #basic(numLanes, numCars)
-    #rs.byDen("Tiger")
-    #rs.byDen("Wolf")
-    #rs.byDen("Bear")
-    #rs.byDen("Webelos I")
-    rs.byDen("Webelos II")
+class scheduleGUI:
+    def __init__(self, root):
+        root.title("Schedule Generator")
+
+        dens = []
+
+        rowCount = 0
+        columnCount = 0
+        self.cbStateDen = dict()
+        self.cbsDen = dict()
+        self.cbStateScout = dict()
+        self.cbsScout = dict()
+        for r in rs.reg.rows:
+            den = r[rs.reg.headerToIndex['den']].lower().strip()
+
+            if den not in dens:
+                dens.append(den)
+                self.cbStateDen[den] = BooleanVar()
+                self.cbStateDen[den].set(False)
+                self.cbsDen[den] = Checkbutton(root, text=den, variable=self.cbStateDen[den], command=lambda d=den: self.denCallBack(d))
+                rowCount = 0
+                columnCount += 1
+                self.cbsDen[den].grid(column=columnCount, row=rowCount)
+
+                rowCount = 1
+
+
+
+
+                for r2 in rs.reg.rows:
+                    if den == r2[rs.reg.headerToIndex['den']].lower().strip() and r2[rs.reg.headerToIndex['checkedIn']].lower() == 'yes':
+                        displayName = r2[rs.reg.headerToIndex['displayName']]
+                        carNum = r2[rs.reg.headerToIndex['carNum']]
+                        self.cbStateScout[carNum] = BooleanVar()
+                        self.cbStateScout[carNum].set(False)
+                        displayText = carNum + '_' + displayName
+                        self.cbsScout[carNum] = Checkbutton(root, text=displayText, variable=self.cbStateScout[carNum],
+                                                       command=self.scoutCallBack)
+                        self.cbsScout[carNum].grid(column=columnCount, row=rowCount)
+                        rowCount += 1
+
+
+
+        self.createButton = Button(root, text="CREATE", command=self.createCallBack)
+        self.createButton.grid(column=0, row=(rowCount + 1))
+
+    def createCallBack(self):
+        rs.carsInRace = []
+
+        for r2 in rs.reg.rows:
+            carNum = r2[rs.reg.headerToIndex['carNum']]
+            if carNum in self.cbStateScout and self.cbStateScout[carNum].get():
+                rs.carsInRace.append(int(carNum))
+
+        rs.numCars = len(rs.carsInRace)
+        rs.processCarList()
+
+
+    def denCallBack(self, den):
+        denState = self.cbStateDen[den].get()
+        for r2 in rs.reg.rows:
+            if den == r2[rs.reg.headerToIndex['den']].lower().strip() and r2[
+                rs.reg.headerToIndex['checkedIn']].lower() == 'yes':
+                carNum = r2[rs.reg.headerToIndex['carNum']]
+                self.cbStateScout[carNum].set(denState)
+
+        return
+
+    def scoutCallBack(self):
+        return
+
+
+#if __name__ == "__main__":
+numLanes = 4
+rs = RaceSchedule('../csv/raceSchedule.csv', '../csv/registration.csv', numLanes)
+#basic(numLanes, numCars)
+#rs.byDen("Tiger")
+#rs.byDen("Wolf")
+#rs.byDen("Bear")
+#rs.byDen("Webelos I")
+#rs.byDen("Webelos II")
+
+window = Tk()
+tGui = scheduleGUI(window)
+window.mainloop()
+tGui.s.close()
+tGui.file.close()
