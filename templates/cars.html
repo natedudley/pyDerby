@@ -21,6 +21,21 @@
             data-url={{ url_for('get_cars') }}>
     </table>
   </div>
+
+  <br/>
+  <div id="toolbar2"></div>
+  <div class="container" style="overflow: auto;">
+    <table
+            id="tableDens"
+            data-toggle="false"
+            data-toolbar="#toolbar"
+            data-search="true"
+            data-show-columns="true"
+            data-pagination="false"
+            data-striped="true"
+            data-url={{ url_for('get_denAverage') }}>
+    </table>
+  </div>
 </div>
 
 <script type='text/javascript'>
@@ -48,6 +63,7 @@
             counter++;
             console.log("Counter is: " + counter);
             $('#table').bootstrapTable('refresh', {silent: true});
+            $('#tableDens').bootstrapTable('refresh', {silent: true});
             if (counter >= 3 * 60 * 60/refreshEveryNumSecs)
             {
                 clearInterval(looper);
@@ -56,6 +72,15 @@
 
         }, refreshEveryNumSecs * 1000);
     })
+
+  $(function() {
+    $('#tableDens').bootstrapTable({
+          columns: {{columnsDen|tojson}},
+
+  });
+  })
+
+
 
   </script>
 {%- endblock %}

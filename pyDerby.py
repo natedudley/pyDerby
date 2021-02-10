@@ -167,6 +167,36 @@ def get_cars():
 
     return jsonify(data)
 
+@app.route('/api/denAverage', methods=['GET'])
+def get_denAverage():
+
+    sched = ScheduleParser.ScheduleParser(schedFilePath)
+    carsRes = sched.computeCarStats()
+
+    data = []
+
+    dens = {}
+
+    for car in carsRes:
+
+        participant = registration.getParticipantFromCar(car)
+        if len(participant) > 0:
+            den = participant['den']
+            avg = float(carsRes[car]['avg'])
+            if den not in dens:
+                dens[den] = [avg]
+            else:
+                dens[den].append(avg)
+
+    for d in dens:
+        row = {'den': d}
+        denAvg = sum(dens[d]) / len(dens[d])
+        dens[d] = denAvg
+        row['avg'] = "{:.3f}".format(denAvg)
+        data.append(row)
+
+    return jsonify(data)
+
 @app.route('/cars')
 def cars():
     data = []
@@ -184,6 +214,10 @@ def cars():
                getTableColSettingsWithCookie('cars', 'totalTime', 'totalTime'),
                getTableColSettingsWithCookie('cars', 'stdev', 'stdev')]
 
+    columnsDen = [
+               getTableColSettingsWithCookie('cars', 'den', 'den'),
+               getTableColSettingsWithCookie('cars', 'avg', 'avg')]
+
     count = 0
     for h in raceSchedule.getHeader():
         if 'car' in h:
@@ -193,7 +227,7 @@ def cars():
             columns.append(getTableColSettingsWithCookie('cars', 'time' + str(count), 'time'))
 
     return render_template("cars.html",
-      columns=columns,
+      columns=columns, columnsDen = columnsDen,
       title='Welcome to the Pinewood Derby!')
 
 @app.route('/')
