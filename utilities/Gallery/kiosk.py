@@ -11,8 +11,8 @@ class myframe(tk.Frame):
         super(myframe, self).__init__(root)
         self.grid()
         
-        w = int(root.winfo_screenwidth() * .25)
-        h = int(root.winfo_screenheight() * .25)
+        w = int(root.winfo_screenwidth() * .95)
+        h = int(root.winfo_screenheight() * .85)
         self.frame = tk.Frame(self, width=w, height=h, bd=5)
         self.frame.configure(bg="black")
         self.frame.grid(row=0, column=0, columnspan=3, padx=8)
